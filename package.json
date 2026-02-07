@@ -23,9 +23,8 @@
     "deploy:all": "./scripts/deploy.sh all",
     "deploy:web:preview": "./scripts/deploy.sh web:preview",
     "deploy:admin:preview": "./scripts/deploy.sh admin:preview",
-    "deploy:status": "./scripts/deploy.sh status",
-    "deploy:git": "./scripts/deploy-git.sh",
-    "deploy:setup": "./scripts/setup-vercel.sh"
+    "deploy:clean": "./scripts/deploy.sh clean",
+    "deploy:status": "./scripts/deploy.sh status"
   },
   "devDependencies": {
     "turbo": "^2.3.3",
