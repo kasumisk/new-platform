@@ -1,0 +1,65 @@
+{
+  "common": {
+    "welcome": "欢迎",
+    "home": "首页",
+    "about": "关于",
+    "settings": "设置",
+    "language": "语言",
+    "theme": "主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "系统"
+  },
+  "navigation": {
+    "home": "首页",
+    "about": "关于",
+    "contact": "联系",
+    "routerTest": "路由测试"
+  },
+  "home": {
+    "title": "欢迎使用 Next.js 和 shadcn/ui",
+    "description": "生产就绪的启动模板，集成 React Query、Zustand、国际化、PWA 支持等。",
+    "getStarted": "开始使用",
+    "documentation": "文档"
+  },
+  "routerTest": {
+    "title": "多语言路由测试",
+    "description": "测试国际化路由跳转功能",
+    "currentLocale": "当前语言",
+    "currentPath": "当前路径",
+    "pathWithoutLocale": "不带语言前缀的路径",
+    "navigationTest": "导航测试",
+    "programmaticNav": "编程式导航",
+    "linkNav": "链接式导航",
+    "pushToAbout": "跳转到 /about",
+    "pushToContact": "跳转到 /contact",
+    "pushToHome": "跳转到 /",
+    "replaceToAbout": "替换到 /about",
+    "switchToZh": "切换到中文",
+    "switchToEn": "切换到英文",
+    "linkToAbout": "链接到关于页",
+    "linkToContact": "链接到联系页",
+    "linkToHome": "链接到首页",
+    "allLocalizedPaths": "所有语言版本的路径",
+    "explanation": "此页面演示了 useLocalizedRouter Hook 和 LocalizedLink 组件的使用，确保在不同语言间正确跳转。",
+    "backToHome": "返回首页"
+  },
+  "about": {
+    "title": "关于我们",
+    "description": "了解更多关于我们的团队和使命",
+    "content": "这是关于页面。您可以使用上方的链接导航到其他页面。",
+    "backToHome": "返回首页"
+  },
+  "contact": {
+    "title": "联系我们",
+    "description": "与我们的团队取得联系",
+    "content": "这是联系页面。欢迎随时与我们联系！",
+    "backToHome": "返回首页"
+  },
+  "pages": {
+    "api-demo": {
+      "title": "API 客户端示例",
+      "description": "基于 Axios 的 API 客户端，完整 TypeScript 支持"
+    }
+  }
+}

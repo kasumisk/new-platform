@@ -1,0 +1,11 @@
+export * from './client.entity';
+export * from './client-capability-permission.entity';
+export * from './usage-record.entity';
+export * from './user.entity';
+export * from './provider.entity';
+export * from './model-config.entity';
+export * from './role.entity';
+export * from './permission.entity';
+export * from './permission-template.entity';
+export { UserRole as UserRoleEntity } from './user-role.entity';
+export * from './role-permission.entity';

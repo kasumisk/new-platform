@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+
+  --color-background: oklch(100% 0 0);
+  --color-foreground: oklch(9% 0.005 285.938);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(9% 0.005 285.938);
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(9% 0.005 285.938);
+  --color-primary: oklch(11.2% 0.0216 285.938);
+  --color-primary-foreground: oklch(98% 0.003 285.938);
+  --color-secondary: oklch(96.1% 0.004 285.938);
+  --color-secondary-foreground: oklch(11.2% 0.0216 285.938);
+  --color-muted: oklch(96.1% 0.004 285.938);
+  --color-muted-foreground: oklch(46.9% 0.0105 285.938);
+  --color-accent: oklch(96.1% 0.004 285.938);
+  --color-accent-foreground: oklch(11.2% 0.0216 285.938);
+  --color-destructive: oklch(60.2% 0.2 29.234);
+  --color-destructive-foreground: oklch(98% 0.003 285.938);
+  --color-border: oklch(91.4% 0.0068 285.938);
+  --color-input: oklch(91.4% 0.0068 285.938);
+  --color-ring: oklch(9% 0.005 285.938);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  .dark {
+    /* 深色背景 - 略带蓝紫色调，更有层次感 */
+    --color-background: oklch(12% 0.02 270);
+    --color-foreground: oklch(95% 0.01 270);
+
+    /* 卡片 - 比背景稍亮，形成层次 */
+    --color-card: oklch(16% 0.025 270);
+    --color-card-foreground: oklch(95% 0.01 270);
+
+    /* 弹出层 - 更亮一些，突出显示 */
+    --color-popover: oklch(18% 0.025 270);
+    --color-popover-foreground: oklch(95% 0.01 270);
+
+    /* 主色调 - 亮眼的蓝紫色渐变感 */
+    --color-primary: oklch(70% 0.18 265);
+    --color-primary-foreground: oklch(98% 0.01 270);
+
+    /* 次要色 - 稍暗的背景色 */
+    --color-secondary: oklch(22% 0.03 270);
+    --color-secondary-foreground: oklch(90% 0.01 270);
+
+    /* 静音色 - 用于次要文本和背景 */
+    --color-muted: oklch(20% 0.025 270);
+    --color-muted-foreground: oklch(65% 0.02 270);
+
+    /* 强调色 - 带有微妙的紫色 */
+    --color-accent: oklch(25% 0.04 280);
+    --color-accent-foreground: oklch(95% 0.01 270);
+
+    /* 危险色 - 更鲜艳的红色 */
+    --color-destructive: oklch(55% 0.22 25);
+    --color-destructive-foreground: oklch(98% 0.01 270);
+
+    /* 边框 - 微妙的分隔线 */
+    --color-border: oklch(25% 0.03 270);
+
+    /* 输入框 - 稍微亮一点的边框 */
+    --color-input: oklch(28% 0.03 270);
+
+    /* 焦点环 - 明亮的主色调 */
+    --color-ring: oklch(70% 0.18 265);
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+}

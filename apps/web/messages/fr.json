@@ -1,0 +1,65 @@
+{
+  "common": {
+    "welcome": "Bienvenue",
+    "home": "Accueil",
+    "about": "À propos",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "about": "À propos",
+    "contact": "Contact",
+    "routerTest": "Test de routage"
+  },
+  "home": {
+    "title": "Bienvenue sur Next.js avec shadcn/ui",
+    "description": "Un modèle prêt pour la production avec React Query, Zustand, i18n, support PWA et plus encore.",
+    "getStarted": "Commencer",
+    "documentation": "Documentation"
+  },
+  "routerTest": {
+    "title": "Test de routage multilingue",
+    "description": "Tester le routage et la navigation internationalisés",
+    "currentLocale": "Langue actuelle",
+    "currentPath": "Chemin actuel",
+    "pathWithoutLocale": "Chemin sans locale",
+    "navigationTest": "Test de navigation",
+    "programmaticNav": "Navigation programmatique",
+    "linkNav": "Navigation par liens",
+    "pushToAbout": "Aller à /about",
+    "pushToContact": "Aller à /contact",
+    "pushToHome": "Aller à /",
+    "replaceToAbout": "Remplacer par /about",
+    "switchToZh": "Passer au chinois",
+    "switchToEn": "Passer à l'anglais",
+    "linkToAbout": "Lien vers À propos",
+    "linkToContact": "Lien vers Contact",
+    "linkToHome": "Lien vers Accueil",
+    "allLocalizedPaths": "Tous les chemins localisés",
+    "explanation": "Cette page démontre l'utilisation du hook useLocalizedRouter et du composant LocalizedLink, garantissant un routage correct entre différentes langues.",
+    "backToHome": "Retour à l'accueil"
+  },
+  "about": {
+    "title": "À propos de nous",
+    "description": "En savoir plus sur notre équipe et notre mission",
+    "content": "Ceci est la page à propos. Vous pouvez naviguer vers d'autres pages en utilisant les liens ci-dessus.",
+    "backToHome": "Retour à l'accueil"
+  },
+  "contact": {
+    "title": "Nous contacter",
+    "description": "Entrez en contact avec notre équipe",
+    "content": "Ceci est la page de contact. N'hésitez pas à nous contacter !",
+    "backToHome": "Retour à l'accueil"
+  },
+  "pages": {
+    "api-demo": {
+      "title": "Démo du client API",
+      "description": "Client API basé sur Axios avec support TypeScript complet"
+    }
+  }
+}

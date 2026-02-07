@@ -1,0 +1,56 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
+import { Config } from '../config/configuration';
+import {
+  Client,
+  ClientCapabilityPermission,
+  UsageRecord,
+} from '../../entities';
+import { User } from '../../entities/user.entity';
+import { Provider } from '../../entities/provider.entity';
+import { ModelConfig } from '../../entities/model-config.entity';
+import { Role } from '../../entities/role.entity';
+import { Permission } from '../../entities/permission.entity';
+import { PermissionTemplate } from '../../entities/permission-template.entity';
+import { UserRole } from '../../entities/user-role.entity';
+import { RolePermission } from '../../entities/role-permission.entity';
+
+@Module({
+  imports: [
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<Config>) => {
+        const dbConfig = configService.get('database', { infer: true });
+        if (!dbConfig) {
+          throw new Error('Database configuration not found');
+        }
+        return {
+          type: 'postgres' as const,
+          host: dbConfig.host,
+          port: dbConfig.port,
+          username: dbConfig.username,
+          password: dbConfig.password,
+          database: dbConfig.database,
+          entities: [
+            Client,
+            ClientCapabilityPermission,
+            UsageRecord,
+            User,
+            Provider,
+            ModelConfig,
+            // RBAC 权限相关实体
+            Role,
+            Permission,
+            PermissionTemplate,
+            UserRole,
+            RolePermission,
+          ],
+          synchronize: dbConfig.synchronize,
+          logging: process.env.NODE_ENV === 'development',
+        };
+      },
+    }),
+  ],
+})
+export class DatabaseModule {}

@@ -1,0 +1,65 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "home": "Home",
+    "about": "About",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "routerTest": "Router Test"
+  },
+  "home": {
+    "title": "Welcome to Next.js with shadcn/ui",
+    "description": "A production-ready starter with React Query, Zustand, i18n, PWA support and more.",
+    "getStarted": "Get Started",
+    "documentation": "Documentation"
+  },
+  "routerTest": {
+    "title": "Multilingual Router Test",
+    "description": "Test internationalized routing and navigation",
+    "currentLocale": "Current Language",
+    "currentPath": "Current Path",
+    "pathWithoutLocale": "Path without locale",
+    "navigationTest": "Navigation Test",
+    "programmaticNav": "Programmatic Navigation",
+    "linkNav": "Link Navigation",
+    "pushToAbout": "Push to /about",
+    "pushToContact": "Push to /contact",
+    "pushToHome": "Push to /",
+    "replaceToAbout": "Replace to /about",
+    "switchToZh": "Switch to Chinese",
+    "switchToEn": "Switch to English",
+    "linkToAbout": "Link to About",
+    "linkToContact": "Link to Contact",
+    "linkToHome": "Link to Home",
+    "allLocalizedPaths": "All Localized Paths",
+    "explanation": "This page demonstrates the use of useLocalizedRouter hook and LocalizedLink component, ensuring correct routing across different languages.",
+    "backToHome": "Back to Home"
+  },
+  "about": {
+    "title": "About Us",
+    "description": "Learn more about our team and mission",
+    "content": "This is the about page. You can navigate to other pages using the links above.",
+    "backToHome": "Back to Home"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Get in touch with our team",
+    "content": "This is the contact page. Feel free to reach out to us!",
+    "backToHome": "Back to Home"
+  },
+  "pages": {
+    "api-demo": {
+      "title": "API Client Demo",
+      "description": "Axios-based API client with full TypeScript support"
+    }
+  }
+}
