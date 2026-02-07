@@ -85,13 +85,13 @@ export function Base64Tool() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Binary className="w-7 h-7" />
-            Base64 编解码
+            Base64 编解码111
           </h1>
           <p className="text-muted-foreground">文本与 Base64 格式相互转换</p>
         </div>
         <Button variant="outline" onClick={handleReset}>
           <RefreshCw className="w-4 h-4 mr-2" />
-          清空
+          清空111
         </Button>
       </div>
 
