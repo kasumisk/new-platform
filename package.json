@@ -24,7 +24,14 @@
     "deploy:web:preview": "./scripts/deploy.sh web:preview",
     "deploy:admin:preview": "./scripts/deploy.sh admin:preview",
     "deploy:clean": "./scripts/deploy.sh clean",
-    "deploy:status": "./scripts/deploy.sh status"
+    "deploy:status": "./scripts/deploy.sh status",
+    "deploy:api": "./scripts/deploy-railway.sh deploy",
+    "deploy:api:init": "./scripts/deploy-railway.sh init",
+    "deploy:api:logs": "./scripts/deploy-railway.sh logs",
+    "deploy:api:health": "./scripts/deploy-railway.sh health",
+    "deploy:api:status": "./scripts/deploy-railway.sh status",
+    "deploy:api:db:init": "./scripts/deploy-railway.sh db:init",
+    "deploy:api:db:backup": "./scripts/deploy-railway.sh db:backup"
   },
   "devDependencies": {
     "turbo": "^2.3.3",
