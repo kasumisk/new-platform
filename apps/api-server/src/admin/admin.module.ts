@@ -14,6 +14,7 @@ import { Permission } from '../entities/permission.entity';
 import { PermissionTemplate } from '../entities/permission-template.entity';
 import { UserRole } from '../entities/user-role.entity';
 import { RolePermission } from '../entities/role-permission.entity';
+import { AppVersion } from '../entities/app-version.entity';
 // 服务
 import { AdminService } from './admin.service';
 import { AdminUserService } from './services/admin-user.service';
@@ -26,6 +27,7 @@ import { AnalyticsService } from './services/analytics.service';
 import { RoleService } from './services/role.service';
 import { RbacPermissionService } from './services/rbac-permission.service';
 import { PermissionTemplateService } from './services/permission-template.service';
+import { AppVersionService } from './services/app-version.service';
 // 控制器
 import { AdminController } from './admin.controller';
 import { AdminUserController } from './controllers/admin-user.controller';
@@ -38,6 +40,7 @@ import { AnalyticsController } from './controllers/analytics.controller';
 import { RoleController } from './controllers/role.controller';
 import { RbacPermissionController } from './controllers/rbac-permission.controller';
 import { PermissionTemplateController } from './controllers/permission-template.controller';
+import { AppVersionController } from './controllers/app-version.controller';
 // 守卫和策略
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -59,6 +62,7 @@ import { RbacPermissionGuard } from './guards/rbac-permission.guard';
       PermissionTemplate,
       UserRole,
       RolePermission,
+      AppVersion,
     ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
@@ -80,6 +84,7 @@ import { RbacPermissionGuard } from './guards/rbac-permission.guard';
     RoleService,
     RbacPermissionService,
     PermissionTemplateService,
+    AppVersionService,
     // 守卫和策略
     JwtStrategy,
     JwtAuthGuard,
@@ -98,6 +103,7 @@ import { RbacPermissionGuard } from './guards/rbac-permission.guard';
     RoleController,
     RbacPermissionController,
     PermissionTemplateController,
+    AppVersionController,
   ],
   exports: [
     AdminService,
@@ -110,6 +116,7 @@ import { RbacPermissionGuard } from './guards/rbac-permission.guard';
     RoleService,
     RbacPermissionService,
     PermissionTemplateService,
+    AppVersionService,
     // 守卫
     JwtAuthGuard,
     RolesGuard,

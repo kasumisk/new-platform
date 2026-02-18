@@ -9,3 +9,4 @@ export * from './permission.entity';
 export * from './permission-template.entity';
 export { UserRole as UserRoleEntity } from './user-role.entity';
 export * from './role-permission.entity';
+export * from './app-version.entity';

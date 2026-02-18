@@ -18,6 +18,8 @@ const PATH = {
     ROLES: '/admin/roles',
     RBAC_PERMISSIONS: '/admin/rbac-permissions',
     PERMISSION_TEMPLATES: '/admin/permission-templates',
+    // 应用版本管理
+    APP_VERSIONS: '/admin/app-versions',
   },
 };
 

@@ -34,7 +34,7 @@ const AppDataSource = new DataSource({
     UserRole,
     User,
   ],
-  synchronize: true, // 自动同步创建表
+  synchronize: process.env.DB_SYNCHRONIZE === 'true', // 自动同步创建表
 });
 
 // 预定义角色
