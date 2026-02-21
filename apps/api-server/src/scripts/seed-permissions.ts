@@ -13,7 +13,7 @@ import {
 import { PermissionTemplate } from '../entities/permission-template.entity';
 import { RolePermission } from '../entities/role-permission.entity';
 import { UserRole } from '../entities/user-role.entity';
-import { User } from '../entities/user.entity';
+import { AdminUser } from '../entities/admin-user.entity';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -32,7 +32,7 @@ const AppDataSource = new DataSource({
     PermissionTemplate,
     RolePermission,
     UserRole,
-    User,
+    AdminUser,
   ],
   synchronize: process.env.DB_SYNCHRONIZE === 'true', // 自动同步创建表
 });

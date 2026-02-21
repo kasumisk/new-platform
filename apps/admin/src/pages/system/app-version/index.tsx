@@ -556,7 +556,7 @@ const AppVersionManagement: React.FC = () => {
         headerTitle="App 版本管理"
         columns={columns}
         scroll={{ x: 1500 }}
-        request={async (params, sort) => {
+        request={async (params) => {
           try {
             const { list, total } = await appVersionApi.getAppVersions({
               page: params.current,

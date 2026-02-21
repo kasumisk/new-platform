@@ -8,7 +8,11 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User, UserRole, UserStatus } from '../entities/user.entity';
+import {
+  AdminUser,
+  AdminRole,
+  AdminUserStatus,
+} from '../entities/admin-user.entity';
 import {
   LoginDto,
   LoginByPhoneDto,
@@ -28,8 +32,8 @@ export class AdminService {
     new Map();
 
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(AdminUser)
+    private readonly adminUserRepository: Repository<AdminUser>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -39,13 +43,12 @@ export class AdminService {
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
     const { username, password } = loginDto;
 
-    // 查找用户 (支持用户名、邮箱、手机号登录)
-    const user = await this.userRepository
+    // 查找管理员用户 (支持用户名、邮箱登录)
+    const user = await this.adminUserRepository
       .createQueryBuilder('user')
       .addSelect('user.password')
       .where('user.username = :username', { username })
       .orWhere('user.email = :username', { username })
-      .orWhere('user.phone = :username', { username })
       .getOne();
 
     if (!user) {
@@ -59,12 +62,12 @@ export class AdminService {
     }
 
     // 检查用户状态
-    if (user.status !== UserStatus.ACTIVE) {
+    if (user.status !== AdminUserStatus.ACTIVE) {
       throw new UnauthorizedException('账号已被禁用');
     }
 
     // 更新最后登录时间
-    await this.userRepository.update(user.id, {
+    await this.adminUserRepository.update(user.id, {
       lastLoginAt: new Date(),
     });
 
@@ -74,7 +77,7 @@ export class AdminService {
     // 移除密码字段
     const { password: _loginPwd, ...userWithoutPassword } = user;
 
-    return { token, user: userWithoutPassword };
+    return { token, user: userWithoutPassword as any };
   }
 
   /**
@@ -90,29 +93,22 @@ export class AdminService {
       throw new UnauthorizedException('验证码错误或已过期');
     }
 
-    // 查找用户
-    let user = await this.userRepository.findOne({ where: { phone } });
+    // 查找管理员用户
+    const user = await this.adminUserRepository.findOne({ where: { phone } });
 
-    // 如果用户不存在,自动注册
     if (!user) {
-      user = await this.userRepository.save({
-        username: `user_${phone.slice(-4)}`,
-        phone,
-        password: await bcrypt.hash(Math.random().toString(36), 10), // 随机密码
-        role: UserRole.USER,
-        status: UserStatus.ACTIVE,
-      });
+      throw new UnauthorizedException('该手机号未注册管理员账号');
     }
 
     // 更新最后登录时间
-    await this.userRepository.update(user.id, {
+    await this.adminUserRepository.update(user.id, {
       lastLoginAt: new Date(),
     });
 
     // 生成 JWT
     const token = this.generateToken(user);
 
-    return { token, user };
+    return { token, user: user as any };
   }
 
   /**
@@ -127,53 +123,50 @@ export class AdminService {
         throw new UnauthorizedException('用户不存在');
       }
 
-      if (user.status !== UserStatus.ACTIVE) {
+      if (user.status !== AdminUserStatus.ACTIVE) {
         throw new UnauthorizedException('账号已被禁用');
       }
 
       // 生成新的 token
       const newToken = this.generateToken(user);
 
-      return { token: newToken, user };
+      return { token: newToken, user: user as any };
     } catch {
       throw new UnauthorizedException('Token 无效或已过期');
     }
   }
 
   /**
-   * 用户注册
+   * 管理员注册
    */
   async register(registerDto: RegisterDto): Promise<LoginResponseDto> {
     const { username, email, phone, password } = registerDto;
 
     // 检查用户名是否已存在
-    const existingUser = await this.userRepository.findOne({
-      where: [{ username }, { email }, { phone }],
+    const existingUser = await this.adminUserRepository.findOne({
+      where: [{ username }, ...(email ? [{ email }] : [])],
     });
 
     if (existingUser) {
       if (existingUser.username === username) {
         throw new ConflictException('用户名已存在');
       }
-      if (existingUser.email === email) {
+      if (email && existingUser.email === email) {
         throw new ConflictException('邮箱已被注册');
-      }
-      if (existingUser.phone === phone) {
-        throw new ConflictException('手机号已被注册');
       }
     }
 
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 创建用户
-    const user = await this.userRepository.save({
+    // 创建管理员用户
+    const user = await this.adminUserRepository.save({
       username,
       email,
       phone,
       password: hashedPassword,
-      role: UserRole.USER,
-      status: UserStatus.ACTIVE,
+      role: AdminRole.ADMIN,
+      status: AdminUserStatus.ACTIVE,
     });
 
     // 生成 JWT
@@ -182,7 +175,7 @@ export class AdminService {
     // 移除密码字段
     const { password: _pwd, ...userWithoutPassword } = user;
 
-    return { token, user: userWithoutPassword };
+    return { token, user: userWithoutPassword as any };
   }
 
   /**
@@ -208,13 +201,15 @@ export class AdminService {
    * 获取用户信息
    */
   async getUserInfo(userId: string): Promise<UserDto> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.adminUserRepository.findOne({
+      where: { id: userId },
+    });
 
     if (!user) {
       throw new UnauthorizedException('用户不存在');
     }
 
-    return user;
+    return user as any;
   }
 
   /**
@@ -230,31 +225,31 @@ export class AdminService {
       throw new BadRequestException('用户不存在');
     }
 
-    await this.userRepository.update(userId, updateProfileDto);
+    await this.adminUserRepository.update(userId, updateProfileDto as any);
 
     const updatedUser = await this.findById(userId);
     if (!updatedUser) {
       throw new BadRequestException('更新失败');
     }
-    return updatedUser;
+    return updatedUser as any;
   }
 
   /**
-   * 根据ID查找用户
+   * 根据ID查找管理员用户
    */
-  async findById(id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } });
+  async findById(id: string): Promise<AdminUser | null> {
+    return this.adminUserRepository.findOne({ where: { id } });
   }
 
   /**
    * 生成 JWT Token
    */
-  private generateToken(user: User): string {
+  private generateToken(user: AdminUser): string {
     const payload = {
       sub: user.id,
       username: user.username,
       role: user.role,
-      isAdmin: user.isAdmin,
+      type: 'admin',
     };
 
     return this.jwtService.sign(payload);

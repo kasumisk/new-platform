@@ -28,12 +28,14 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('未登录');
     }
 
-    // 管理员拥有所有权限
-    if (user.isAdmin) {
+    // 超级管理员拥有所有权限
+    if (user.role === 'super_admin') {
       return true;
     }
 
-    const hasRole = requiredRoles.some((role) => user.roles?.includes(role));
+    const hasRole = requiredRoles.some(
+      (role) => user.role === role || user.roles?.includes(role),
+    );
 
     if (!hasRole) {
       throw new ForbiddenException('权限不足');

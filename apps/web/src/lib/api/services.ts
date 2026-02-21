@@ -95,28 +95,28 @@ export const authService = {
    * 登录
    */
   login: async (data: LoginDto) => {
-    return clientPost<LoginResponse>('/auth/login', data);
+    return clientPost<LoginResponse>('/gateway/auth/login', data);
   },
 
   /**
    * 注册
    */
   register: async (data: RegisterDto) => {
-    return clientPost<User>('/auth/register', data);
+    return clientPost<User>('/gateway/auth/register', data);
   },
 
   /**
    * 登出
    */
   logout: async () => {
-    return clientPost<void>('/auth/logout');
+    return clientPost<void>('/gateway/auth/logout');
   },
 
   /**
    * 刷新 token
    */
   refreshToken: async (refreshToken: string) => {
-    return clientPost<{ token: string; refreshToken: string }>('/auth/refresh', {
+    return clientPost<{ token: string; refreshToken: string }>('/gateway/auth/refresh', {
       refreshToken,
     });
   },
@@ -125,7 +125,7 @@ export const authService = {
    * 获取当前用户信息
    */
   getCurrentUser: async () => {
-    return clientGet<User>('/auth/me');
+    return clientGet<User>('/gateway/auth/me');
   },
 };
 

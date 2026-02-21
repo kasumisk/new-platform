@@ -15,9 +15,10 @@ import { IGNORE_RESPONSE_INTERCEPTOR_KEY } from '../decorators/ignore-response-i
  * 将所有响应统一包装为标准格式
  */
 @Injectable()
-export class ResponseInterceptor<T>
-  implements NestInterceptor<T, ApiResponse<T>>
-{
+export class ResponseInterceptor<T> implements NestInterceptor<
+  T,
+  ApiResponse<T>
+> {
   private readonly logger = new Logger(ResponseInterceptor.name);
 
   constructor(private readonly reflector: Reflector) {}

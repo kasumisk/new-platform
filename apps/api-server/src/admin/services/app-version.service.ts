@@ -173,9 +173,7 @@ export class AppVersionService {
       const updateKeys = Object.keys(updateDto).filter(
         (k) => updateDto[k] !== undefined,
       );
-      const invalidKeys = updateKeys.filter(
-        (k) => !allowedFields.includes(k),
-      );
+      const invalidKeys = updateKeys.filter((k) => !allowedFields.includes(k));
       if (invalidKeys.length > 0) {
         throw new BadRequestException(
           `已发布版本不能修改以下字段: ${invalidKeys.join(', ')}`,
@@ -241,10 +239,9 @@ export class AppVersionService {
     }
 
     version.status = AppVersionStatus.PUBLISHED;
-    version.releaseDate =
-      publishDto?.releaseDate
-        ? new Date(publishDto.releaseDate)
-        : new Date();
+    version.releaseDate = publishDto?.releaseDate
+      ? new Date(publishDto.releaseDate)
+      : new Date();
 
     return await this.appVersionRepository.save(version);
   }
@@ -364,7 +361,11 @@ export class AppVersionService {
 
     // 多语言描述
     let description = version.description;
-    if (language && version.i18nDescription && version.i18nDescription[language]) {
+    if (
+      language &&
+      version.i18nDescription &&
+      version.i18nDescription[language]
+    ) {
       description = version.i18nDescription[language];
     }
 

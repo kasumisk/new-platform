@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddAllowedProvidersAndModelsToPermission1730900000000
-  implements MigrationInterface
-{
+export class AddAllowedProvidersAndModelsToPermission1730900000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 添加 allowed_providers 字段（如果不存在）
     await queryRunner.query(`

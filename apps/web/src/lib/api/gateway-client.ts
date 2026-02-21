@@ -132,7 +132,7 @@ export async function generateText(
   config?: ApiKeyConfig
 ): Promise<ApiResponse<TextGenerationResponse>> {
   try {
-    const response = await fetch(`${GATEWAY_BASE_URL}/text/generation`, {
+    const response = await fetch(`${GATEWAY_BASE_URL}/gateway/text/generation`, {
       method: 'POST',
       headers: getHeaders(config),
       body: JSON.stringify(request),
@@ -176,7 +176,7 @@ export function generateTextStream(
   const signal = controller.signal;
 
   // 使用 fetch 发起 POST 请求
-  fetch(`${GATEWAY_BASE_URL}/text/generation/stream`, {
+  fetch(`${GATEWAY_BASE_URL}/gateway/text/generation/stream`, {
     method: 'POST',
     headers: getHeaders(config),
     body: JSON.stringify(request),
@@ -269,7 +269,7 @@ export async function generateImage(
   config?: ApiKeyConfig
 ): Promise<ApiResponse<ImageGenerationResponse>> {
   try {
-    const response = await fetch(`${GATEWAY_BASE_URL}/image/generation`, {
+    const response = await fetch(`${GATEWAY_BASE_URL}/gateway/image/generation`, {
       method: 'POST',
       headers: getHeaders(config),
       body: JSON.stringify(request),

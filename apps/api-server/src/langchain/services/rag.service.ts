@@ -54,7 +54,9 @@ export class RAGService implements OnModuleInit {
 
   async query(question: string, clientId: string): Promise<string> {
     if (!this.initialized || !this.vectorStore) {
-      throw new Error('RAG service is not available: pgvector extension is not installed');
+      throw new Error(
+        'RAG service is not available: pgvector extension is not installed',
+      );
     }
 
     const prompt = ChatPromptTemplate.fromTemplate(`
@@ -86,7 +88,9 @@ export class RAGService implements OnModuleInit {
 
   async uploadDocuments(texts: string[], clientId: string): Promise<void> {
     if (!this.initialized || !this.vectorStore) {
-      throw new Error('RAG service is not available: pgvector extension is not installed');
+      throw new Error(
+        'RAG service is not available: pgvector extension is not installed',
+      );
     }
 
     const splitter = new RecursiveCharacterTextSplitter({

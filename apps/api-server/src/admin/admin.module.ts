@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../entities/user.entity';
+import { AdminUser } from '../entities/admin-user.entity';
+import { AppUser } from '../entities/app-user.entity';
 import { Client } from '../entities/client.entity';
 import { ClientCapabilityPermission } from '../entities/client-capability-permission.entity';
 import { Provider } from '../entities/provider.entity';
@@ -28,6 +29,8 @@ import { RoleService } from './services/role.service';
 import { RbacPermissionService } from './services/rbac-permission.service';
 import { PermissionTemplateService } from './services/permission-template.service';
 import { AppVersionService } from './services/app-version.service';
+// App 用户管理服务
+import { AppUserManagementService } from './services/app-user-management.service';
 // 控制器
 import { AdminController } from './admin.controller';
 import { AdminUserController } from './controllers/admin-user.controller';
@@ -41,6 +44,8 @@ import { RoleController } from './controllers/role.controller';
 import { RbacPermissionController } from './controllers/rbac-permission.controller';
 import { PermissionTemplateController } from './controllers/permission-template.controller';
 import { AppVersionController } from './controllers/app-version.controller';
+// App 用户管理控制器
+import { AppUserManagementController } from './controllers/app-user-management.controller';
 // 守卫和策略
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -50,7 +55,8 @@ import { RbacPermissionGuard } from './guards/rbac-permission.guard';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      User,
+      AdminUser,
+      AppUser,
       Client,
       ClientCapabilityPermission,
       Provider,
@@ -85,6 +91,8 @@ import { RbacPermissionGuard } from './guards/rbac-permission.guard';
     RbacPermissionService,
     PermissionTemplateService,
     AppVersionService,
+    // App 用户管理
+    AppUserManagementService,
     // 守卫和策略
     JwtStrategy,
     JwtAuthGuard,
@@ -104,6 +112,8 @@ import { RbacPermissionGuard } from './guards/rbac-permission.guard';
     RbacPermissionController,
     PermissionTemplateController,
     AppVersionController,
+    // App 用户管理控制器
+    AppUserManagementController,
   ],
   exports: [
     AdminService,
@@ -117,6 +127,8 @@ import { RbacPermissionGuard } from './guards/rbac-permission.guard';
     RbacPermissionService,
     PermissionTemplateService,
     AppVersionService,
+    // App 用户管理
+    AppUserManagementService,
     // 守卫
     JwtAuthGuard,
     RolesGuard,

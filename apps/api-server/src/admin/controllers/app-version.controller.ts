@@ -43,9 +43,7 @@ export class AppVersionController {
   @Get()
   @ApiOperation({ summary: '获取版本列表' })
   @SwaggerResponse({ status: 200, type: AppVersionsListResponseDto })
-  async findAll(
-    @Query() query: GetAppVersionsQueryDto,
-  ): Promise<ApiResponse> {
+  async findAll(@Query() query: GetAppVersionsQueryDto): Promise<ApiResponse> {
     const data = await this.appVersionService.findAll(query);
     return {
       success: true,
@@ -95,9 +93,7 @@ export class AppVersionController {
   @Post()
   @ApiOperation({ summary: '创建版本' })
   @SwaggerResponse({ status: 201, type: AppVersionInfoDto })
-  async create(
-    @Body() createDto: CreateAppVersionDto,
-  ): Promise<ApiResponse> {
+  async create(@Body() createDto: CreateAppVersionDto): Promise<ApiResponse> {
     const data = await this.appVersionService.create(createDto);
     return {
       success: true,

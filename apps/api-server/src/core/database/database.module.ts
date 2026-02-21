@@ -7,7 +7,8 @@ import {
   ClientCapabilityPermission,
   UsageRecord,
 } from '../../entities';
-import { User } from '../../entities/user.entity';
+import { AdminUser } from '../../entities/admin-user.entity';
+import { AppUser } from '../../entities/app-user.entity';
 import { Provider } from '../../entities/provider.entity';
 import { ModelConfig } from '../../entities/model-config.entity';
 import { Role } from '../../entities/role.entity';
@@ -37,7 +38,8 @@ import { AppVersion } from '../../entities/app-version.entity';
             Client,
             ClientCapabilityPermission,
             UsageRecord,
-            User,
+            AdminUser,
+            AppUser,
             Provider,
             ModelConfig,
             // RBAC 权限相关实体

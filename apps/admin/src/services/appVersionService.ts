@@ -199,8 +199,8 @@ export const useAppVersion = (id: string, options?: any) => {
   });
 };
 
-export const useAppVersionStats = (options?: any) => {
-  return useQuery({
+export const useAppVersionStats = (options?: Omit<import('@tanstack/react-query').UseQueryOptions<AppVersionStatsDto>, 'queryKey' | 'queryFn'>) => {
+  return useQuery<AppVersionStatsDto>({
     queryKey: appVersionQueryKeys.stats(),
     queryFn: () => appVersionApi.getStats(),
     staleTime: 60 * 1000,

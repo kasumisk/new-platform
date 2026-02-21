@@ -1,7 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 import { DataSource } from 'typeorm';
-import { User, UserRole, UserStatus } from '../entities/user.entity';
+import {
+  AdminUser,
+  AdminRole,
+  AdminUserStatus,
+} from '../entities/admin-user.entity';
 import { Role, RoleStatus } from '../entities/role.entity';
 import { UserRole as UserRoleEntity } from '../entities/user-role.entity';
 import * as bcrypt from 'bcrypt';
@@ -13,7 +17,7 @@ import * as bcrypt from 'bcrypt';
 async function seedAdmin() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const dataSource = app.get(DataSource);
-  const userRepository = dataSource.getRepository(User);
+  const userRepository = dataSource.getRepository(AdminUser);
   const roleRepository = dataSource.getRepository(Role);
   const userRoleRepository = dataSource.getRepository(UserRoleEntity);
 
@@ -63,9 +67,8 @@ async function seedAdmin() {
         username: adminUsername,
         email: 'admin@example.com',
         password: hashedPassword,
-        role: UserRole.ADMIN,
-        status: UserStatus.ACTIVE,
-        isAdmin: true,
+        role: AdminRole.SUPER_ADMIN,
+        status: AdminUserStatus.ACTIVE,
         nickname: '系统管理员',
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
       });
@@ -101,18 +104,11 @@ async function seedAdmin() {
 
     const testUsers = [
       {
-        username: 'testuser',
-        email: 'test@example.com',
+        username: 'testadmin',
+        email: 'testadmin@example.com',
         password: 'test123',
-        role: UserRole.USER,
-        nickname: '测试用户',
-      },
-      {
-        username: 'demo',
-        email: 'demo@example.com',
-        password: 'demo123',
-        role: UserRole.USER,
-        nickname: '演示用户',
+        role: AdminRole.ADMIN,
+        nickname: '测试管理员',
       },
     ];
 
@@ -127,7 +123,7 @@ async function seedAdmin() {
         await userRepository.save({
           ...userDataWithoutPassword,
           password: hashedPassword,
-          status: UserStatus.ACTIVE,
+          status: AdminUserStatus.ACTIVE,
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.username}`,
         });
         console.log(
@@ -144,8 +140,7 @@ async function seedAdmin() {
     console.log('   密码: admin123');
     console.log('   角色: SUPER_ADMIN (拥有所有权限)\n');
     console.log('🔐 测试账号：');
-    console.log('   1. 用户名: testuser  密码: test123');
-    console.log('   2. 用户名: demo      密码: demo123');
+    console.log('   1. 用户名: testadmin  密码: test123');
     console.log('\n⚠️  注意事项：');
     console.log('   1. 请先运行 seed-permissions.ts 创建权限数据');
     console.log('   2. 请在生产环境中立即修改默认密码！\n');

@@ -9,9 +9,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * 3. 将 capability_configs 数据迁移到 model_configs
  * 4. 删除 capability_configs 表
  */
-export class MergeCapabilityIntoModel1730822400000
-  implements MigrationInterface
-{
+export class MergeCapabilityIntoModel1730822400000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ============ 第一步：为 model_configs 添加新字段 ============
 

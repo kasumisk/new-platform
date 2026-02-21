@@ -1,7 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 import { DataSource } from 'typeorm';
-import { User, UserRole, UserStatus } from '../entities/user.entity';
+import {
+  AdminUser,
+  AdminRole,
+  AdminUserStatus,
+} from '../entities/admin-user.entity';
 import { Role, RoleStatus } from '../entities/role.entity';
 import {
   Permission,
@@ -26,7 +30,7 @@ async function initSystem() {
   const roleRepo = dataSource.getRepository(Role);
   const permissionRepo = dataSource.getRepository(Permission);
   const rolePermissionRepo = dataSource.getRepository(RolePermission);
-  const userRepo = dataSource.getRepository(User);
+  const userRepo = dataSource.getRepository(AdminUser);
   const userRoleRepo = dataSource.getRepository(UserRoleEntity);
 
   try {
@@ -353,9 +357,8 @@ async function initSystem() {
         username: adminUsername,
         email: 'admin@example.com',
         password: hashedPassword,
-        role: UserRole.ADMIN,
-        status: UserStatus.ACTIVE,
-        isAdmin: true,
+        role: AdminRole.SUPER_ADMIN,
+        status: AdminUserStatus.ACTIVE,
         nickname: '系统管理员',
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
       });

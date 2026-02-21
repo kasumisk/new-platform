@@ -20,6 +20,8 @@ const PATH = {
     PERMISSION_TEMPLATES: '/admin/permission-templates',
     // 应用版本管理
     APP_VERSIONS: '/admin/app-versions',
+    // App 用户管理
+    APP_USERS: '/admin/app-users',
   },
 };
 

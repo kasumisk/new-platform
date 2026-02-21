@@ -10,31 +10,29 @@ import {
 import { UserRole as UserRoleEntity } from './user-role.entity';
 
 /**
- * 用户角色枚举
- * @deprecated 使用 RBAC 角色系统替代
+ * 管理员角色枚举
  */
-export enum UserRole {
+export enum AdminRole {
+  SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
-  USER = 'user',
 }
 
 /**
- * 用户状态枚举
+ * 管理员状态枚举
  */
-export enum UserStatus {
+export enum AdminUserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   SUSPENDED = 'suspended',
 }
 
 /**
- * 用户实体
+ * 管理员用户实体
  */
-@Entity('users')
+@Entity('admin_users')
 @Index(['username'], { unique: true })
 @Index(['email'], { unique: true })
-@Index(['phone'], { unique: true })
-export class User {
+export class AdminUser {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -47,34 +45,28 @@ export class User {
   @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
   email?: string;
 
-  @Column({ type: 'varchar', length: 20, unique: true, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   phone?: string;
 
-  /**
-   * @deprecated 使用 userRoles 关联表替代
-   */
   @Column({
     type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER,
+    enum: AdminRole,
+    default: AdminRole.ADMIN,
   })
-  role: UserRole;
+  role: AdminRole;
 
   @Column({
     type: 'enum',
-    enum: UserStatus,
-    default: UserStatus.ACTIVE,
+    enum: AdminUserStatus,
+    default: AdminUserStatus.ACTIVE,
   })
-  status: UserStatus;
+  status: AdminUserStatus;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   avatar?: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   nickname?: string;
-
-  @Column({ type: 'boolean', default: false, name: 'is_admin' })
-  isAdmin: boolean;
 
   @Column({ type: 'timestamp', nullable: true, name: 'last_login_at' })
   lastLoginAt?: Date;
@@ -88,6 +80,6 @@ export class User {
   /**
    * 用户角色关联（RBAC）
    */
-  @OneToMany(() => UserRoleEntity, (ur) => ur.user)
+  @OneToMany(() => UserRoleEntity, (ur) => ur.adminUser)
   userRoles: UserRoleEntity[];
 }

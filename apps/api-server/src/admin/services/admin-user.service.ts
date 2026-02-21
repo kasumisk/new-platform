@@ -5,9 +5,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, In } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User, UserRole as EntityUserRole } from '../../entities/user.entity';
+import {
+  AdminUser,
+  AdminRole,
+  AdminUserStatus,
+} from '../../entities/admin-user.entity';
 import { UserRole } from '../../entities/user-role.entity';
 import { Role } from '../../entities/role.entity';
 import {
@@ -20,8 +24,8 @@ import {
 @Injectable()
 export class AdminUserService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(AdminUser)
+    private readonly adminUserRepository: Repository<AdminUser>,
     @InjectRepository(UserRole)
     private readonly userRoleRepository: Repository<UserRole>,
     @InjectRepository(Role)
@@ -29,12 +33,12 @@ export class AdminUserService {
   ) {}
 
   /**
-   * 获取用户列表（分页）
+   * 获取管理员用户列表（分页）
    */
   async findAll(query: GetUsersQueryDto) {
     const { page = 1, pageSize = 10, keyword, role, status } = query;
 
-    const queryBuilder = this.userRepository.createQueryBuilder('user');
+    const queryBuilder = this.adminUserRepository.createQueryBuilder('user');
 
     // 搜索条件
     if (keyword) {
@@ -63,13 +67,11 @@ export class AdminUserService {
 
     // 获取所有用户的 RBAC 角色
     const userIds = list.map((u) => u.id);
-    console.log('[AdminUserService] 查询用户角色, userIds:', userIds);
 
     const userRoles = await this.userRoleRepository.find({
       where: { userId: In(userIds) },
       relations: ['role'],
     });
-    console.log('[AdminUserService] 找到用户角色关联:', userRoles.length);
 
     // 构建用户ID到角色的映射
     const userRolesMap = new Map<string, any[]>();
@@ -84,19 +86,11 @@ export class AdminUserService {
         userRolesMap.set(ur.userId, existing);
       }
     });
-    console.log(
-      '[AdminUserService] 用户角色映射:',
-      Array.from(userRolesMap.entries()),
-    );
 
     // 移除密码字段并添加角色信息
     const sanitizedList = list.map((user) => {
-      const { password, ...rest } = user;
+      const { ...rest } = user;
       const rbacRoles = userRolesMap.get(user.id) || [];
-      console.log(
-        `[AdminUserService] 用户 ${user.username} 的角色:`,
-        rbacRoles,
-      );
       return {
         ...rest,
         rbacRoles,
@@ -113,28 +107,27 @@ export class AdminUserService {
   }
 
   /**
-   * 获取用户详情
+   * 获取管理员用户详情
    */
   async findOne(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.adminUserRepository.findOne({ where: { id } });
 
     if (!user) {
       throw new NotFoundException(`用户 #${id} 不存在`);
     }
 
-    const { password, ...rest } = user;
-    return rest;
+    return user;
   }
 
   /**
-   * 创建用户
+   * 创建管理员用户
    */
   async create(createUserDto: CreateUserDto) {
     // 检查用户名是否已存在
-    const existingUser = await this.userRepository.findOne({
+    const existingUser = await this.adminUserRepository.findOne({
       where: [
         { username: createUserDto.username },
-        { email: createUserDto.email },
+        ...(createUserDto.email ? [{ email: createUserDto.email }] : []),
       ],
     });
 
@@ -142,7 +135,7 @@ export class AdminUserService {
       if (existingUser.username === createUserDto.username) {
         throw new ConflictException('用户名已存在');
       }
-      if (existingUser.email === createUserDto.email) {
+      if (createUserDto.email && existingUser.email === createUserDto.email) {
         throw new ConflictException('邮箱已存在');
       }
     }
@@ -150,27 +143,28 @@ export class AdminUserService {
     // 加密密码
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-    const user = this.userRepository.create({
+    const user = this.adminUserRepository.create({
       username: createUserDto.username,
       email: createUserDto.email,
       password: hashedPassword,
-      role: createUserDto.role as any as EntityUserRole,
+      role:
+        createUserDto.role === 'admin'
+          ? AdminRole.SUPER_ADMIN
+          : AdminRole.ADMIN,
       nickname: createUserDto.nickname,
       phone: createUserDto.phone,
-      isAdmin: createUserDto.role === 'admin',
     });
 
-    const savedUser = await this.userRepository.save(user);
+    const savedUser = await this.adminUserRepository.save(user);
 
-    const { password: _, ...rest } = savedUser;
-    return rest;
+    return savedUser;
   }
 
   /**
-   * 更新用户
+   * 更新管理员用户
    */
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.adminUserRepository.findOne({ where: { id } });
 
     if (!user) {
       throw new NotFoundException(`用户 #${id} 不存在`);
@@ -178,7 +172,7 @@ export class AdminUserService {
 
     // 检查邮箱是否被其他用户使用
     if (updateUserDto.email && updateUserDto.email !== user.email) {
-      const existingUser = await this.userRepository.findOne({
+      const existingUser = await this.adminUserRepository.findOne({
         where: { email: updateUserDto.email },
       });
       if (existingUser) {
@@ -186,24 +180,18 @@ export class AdminUserService {
       }
     }
 
-    // 如果更新角色，同步更新 isAdmin 字段
-    if (updateUserDto.role) {
-      user.isAdmin = updateUserDto.role === 'admin';
-    }
-
     Object.assign(user, updateUserDto);
 
-    const updatedUser = await this.userRepository.save(user);
+    const updatedUser = await this.adminUserRepository.save(user);
 
-    const { password, ...rest } = updatedUser;
-    return rest;
+    return updatedUser;
   }
 
   /**
-   * 删除用户
+   * 删除管理员用户
    */
   async remove(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.adminUserRepository.findOne({ where: { id } });
 
     if (!user) {
       throw new NotFoundException(`用户 #${id} 不存在`);
@@ -214,7 +202,7 @@ export class AdminUserService {
       throw new BadRequestException('不能删除超级管理员账户');
     }
 
-    await this.userRepository.remove(user);
+    await this.adminUserRepository.remove(user);
 
     return { message: '用户删除成功' };
   }
@@ -223,7 +211,11 @@ export class AdminUserService {
    * 重置密码
    */
   async resetPassword(id: string, resetPasswordDto: ResetPasswordDto) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.adminUserRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.id = :id', { id })
+      .getOne();
 
     if (!user) {
       throw new NotFoundException(`用户 #${id} 不存在`);
@@ -233,16 +225,18 @@ export class AdminUserService {
     const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 10);
     user.password = hashedPassword;
 
-    await this.userRepository.save(user);
+    await this.adminUserRepository.save(user);
 
     return { message: '密码重置成功' };
   }
 
   /**
-   * 获取用户的角色列表
+   * 获取管理员用户的角色列表
    */
   async getUserRoles(userId: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.adminUserRepository.findOne({
+      where: { id: userId },
+    });
 
     if (!user) {
       throw new NotFoundException(`用户 #${userId} 不存在`);
@@ -266,10 +260,12 @@ export class AdminUserService {
   }
 
   /**
-   * 为用户分配角色
+   * 为管理员用户分配角色
    */
   async assignRoles(userId: string, roleIds: string[]) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.adminUserRepository.findOne({
+      where: { id: userId },
+    });
 
     if (!user) {
       throw new NotFoundException(`用户 #${userId} 不存在`);
@@ -295,13 +291,6 @@ export class AdminUserService {
       );
       await this.userRoleRepository.save(userRoles);
     }
-
-    // 更新用户的 isAdmin 字段
-    const adminRoles = await this.roleRepository.find({
-      where: { id: In(roleIds), code: In(['SUPER_ADMIN', 'ADMIN']) },
-    });
-    user.isAdmin = adminRoles.length > 0;
-    await this.userRepository.save(user);
 
     return { message: '角色分配成功' };
   }
