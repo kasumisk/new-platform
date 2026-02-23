@@ -5,7 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
+import { AppVersionPackage } from './app-version-package.entity';
 
 /**
  * 平台类型
@@ -76,30 +78,6 @@ export class AppVersion {
   description: string;
 
   /**
-   * 下载链接
-   */
-  @Column({ type: 'varchar', length: 1000 })
-  downloadUrl: string;
-
-  /**
-   * 文件大小（字节）
-   */
-  @Column({ type: 'bigint', default: 0 })
-  fileSize: number;
-
-  /**
-   * 文件校验值 (e.g. "md5:abc123" or "sha256:xxx")
-   */
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  checksum?: string;
-
-  /**
-   * 分发渠道 (e.g. "google_play", "app_store", "official")
-   */
-  @Column({ type: 'varchar', length: 50, default: 'official' })
-  channel: string;
-
-  /**
    * 最低支持版本号（低于此版本强制更新）
    */
   @Column({ type: 'varchar', length: 50, nullable: true })
@@ -150,6 +128,12 @@ export class AppVersion {
    */
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;
+
+  /**
+   * 渠道包列表（一个版本对应多个渠道包）
+   */
+  @OneToMany(() => AppVersionPackage, (pkg) => pkg.version, { cascade: true })
+  packages: AppVersionPackage[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -6,7 +6,6 @@ import {
   IsBoolean,
   IsNumber,
   IsOptional,
-  IsUrl,
   IsInt,
   Min,
   Max,
@@ -19,6 +18,7 @@ import {
   UpdateType,
   AppVersionStatus,
 } from '../../entities/app-version.entity';
+import { AppChannel } from '../../entities/app-version-package.entity';
 
 // ==================== Query DTOs ====================
 
@@ -121,37 +121,6 @@ export class CreateAppVersionDto {
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty({
-    description: '下载链接',
-    example: 'https://example.com/app-v1.3.0.apk',
-  })
-  @IsString()
-  @IsNotEmpty()
-  downloadUrl: string;
-
-  @ApiPropertyOptional({ description: '文件大小（字节）', example: 20480000 })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  fileSize?: number;
-
-  @ApiPropertyOptional({
-    description: '文件校验值',
-    example: 'md5:abc123def456',
-  })
-  @IsOptional()
-  @IsString()
-  checksum?: string;
-
-  @ApiPropertyOptional({
-    description: '分发渠道',
-    example: 'official',
-  })
-  @IsOptional()
-  @IsString()
-  channel?: string;
-
   @ApiPropertyOptional({
     description: '最低支持版本号',
     example: '1.0.0',
@@ -225,28 +194,6 @@ export class UpdateAppVersionDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @ApiPropertyOptional({ description: '下载链接' })
-  @IsOptional()
-  @IsString()
-  downloadUrl?: string;
-
-  @ApiPropertyOptional({ description: '文件大小（字节）' })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  fileSize?: number;
-
-  @ApiPropertyOptional({ description: '文件校验值' })
-  @IsOptional()
-  @IsString()
-  checksum?: string;
-
-  @ApiPropertyOptional({ description: '分发渠道' })
-  @IsOptional()
-  @IsString()
-  channel?: string;
 
   @ApiPropertyOptional({ description: '最低支持版本号' })
   @IsOptional()
@@ -382,18 +329,6 @@ export class AppVersionInfoDto {
   @ApiProperty({ description: '更新描述' })
   description: string;
 
-  @ApiProperty({ description: '下载链接' })
-  downloadUrl: string;
-
-  @ApiProperty({ description: '文件大小（字节）' })
-  fileSize: number;
-
-  @ApiPropertyOptional({ description: '文件校验值' })
-  checksum?: string;
-
-  @ApiProperty({ description: '分发渠道' })
-  channel: string;
-
   @ApiPropertyOptional({ description: '最低支持版本号' })
   minSupportVersion?: string;
 
@@ -414,6 +349,9 @@ export class AppVersionInfoDto {
 
   @ApiPropertyOptional({ description: '扩展元数据' })
   metadata?: Record<string, any>;
+
+  @ApiPropertyOptional({ description: '渠道包列表', type: 'array' })
+  packages?: AppVersionPackageInfoDto[];
 
   @ApiProperty({ description: '创建时间' })
   createdAt: Date;
@@ -466,4 +404,103 @@ export class CheckUpdateResponseDto {
 
   @ApiPropertyOptional({ description: '文件校验值' })
   checksum?: string;
+}
+
+// ==================== 渠道包 DTOs ====================
+
+/**
+ * 创建渠道包 DTO
+ */
+export class CreateAppVersionPackageDto {
+  @ApiProperty({
+    enum: AppChannel,
+    description: '分发渠道',
+    example: AppChannel.OFFICIAL,
+  })
+  @IsEnum(AppChannel)
+  channel: AppChannel;
+
+  @ApiProperty({
+    description: '下载链接（安装包 URL 或商店 URL）',
+    example: 'https://example.com/app-v1.3.0.apk',
+  })
+  @IsString()
+  @IsNotEmpty()
+  downloadUrl: string;
+
+  @ApiPropertyOptional({ description: '文件大小（字节）', example: 20480000 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  fileSize?: number;
+
+  @ApiPropertyOptional({ description: '文件校验值', example: 'md5:abc123' })
+  @IsOptional()
+  @IsString()
+  checksum?: string;
+
+  @ApiPropertyOptional({ description: '是否启用', default: true })
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
+}
+
+/**
+ * 更新渠道包 DTO
+ */
+export class UpdateAppVersionPackageDto {
+  @ApiPropertyOptional({ description: '下载链接' })
+  @IsOptional()
+  @IsString()
+  downloadUrl?: string;
+
+  @ApiPropertyOptional({ description: '文件大小（字节）' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  fileSize?: number;
+
+  @ApiPropertyOptional({ description: '文件校验值' })
+  @IsOptional()
+  @IsString()
+  checksum?: string;
+
+  @ApiPropertyOptional({ description: '是否启用' })
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
+}
+
+/**
+ * 渠道包信息响应 DTO
+ */
+export class AppVersionPackageInfoDto {
+  @ApiProperty({ description: '渠道包 ID' })
+  id: string;
+
+  @ApiProperty({ description: '所属版本 ID' })
+  versionId: string;
+
+  @ApiProperty({ enum: AppChannel, description: '渠道' })
+  channel: string;
+
+  @ApiProperty({ description: '下载 / 商店链接' })
+  downloadUrl: string;
+
+  @ApiProperty({ description: '文件大小（字节）' })
+  fileSize: number;
+
+  @ApiPropertyOptional({ description: '文件校验值' })
+  checksum?: string;
+
+  @ApiProperty({ description: '是否启用' })
+  enabled: boolean;
+
+  @ApiProperty({ description: '创建时间' })
+  createdAt: Date;
+
+  @ApiProperty({ description: '更新时间' })
+  updatedAt: Date;
 }

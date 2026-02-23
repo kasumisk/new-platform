@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { UserList } from './client-example';
+import { AppFileUploadDemo } from './upload-example';
 
 export default function ApiDemoPage() {
   const t = useTranslations('pages.api-demo');
@@ -9,6 +10,14 @@ export default function ApiDemoPage() {
       <div>
         <h1 className="text-3xl font-bold mb-2">{t('title')}</h1>
         <p className="text-gray-600">{t('description')}</p>
+      </div>
+
+      <div className="border rounded-lg p-6">
+        <h2 className="text-2xl font-bold mb-4">📤 App 用户文件上传示例</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          支持服务器中转上传和预签名 URL 客户端直传两种方式，兼容 Cloudflare R2 / AWS S3
+        </p>
+        <AppFileUploadDemo />
       </div>
 
       <div className="border rounded-lg p-6">

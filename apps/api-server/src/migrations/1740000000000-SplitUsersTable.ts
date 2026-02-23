@@ -166,19 +166,32 @@ export class SplitUsersTable1740000000000 implements MigrationInterface {
 
     // 3. 将现有 users 表数据迁移到 admin_users
     // 仅迁移管理员用户（is_admin = true 或 role = 'admin'）
-    await queryRunner.query(`
-      INSERT INTO admin_users (id, username, password, email, phone, role, status, avatar, nickname, last_login_at, created_at, updated_at)
-      SELECT id, username, password, email, phone,
-        CASE WHEN role = 'admin' OR is_admin = true THEN 'super_admin'::admin_role_enum ELSE 'admin'::admin_role_enum END,
-        CASE
-          WHEN status = 'active' THEN 'active'::admin_user_status_enum
-          WHEN status = 'inactive' THEN 'inactive'::admin_user_status_enum
-          WHEN status = 'suspended' THEN 'suspended'::admin_user_status_enum
-          ELSE 'active'::admin_user_status_enum
-        END,
-        avatar, nickname, last_login_at, created_at, updated_at
-      FROM users
+    // 如果 admin_users 已有数据，则跳过迁移（避免重复）
+    const adminUsersCount = await queryRunner.query(`SELECT COUNT(*) FROM admin_users`);
+    const hasAdminUsers = parseInt(adminUsersCount[0].count, 10) > 0;
+
+    const usersTableExists = await queryRunner.query(`
+      SELECT COUNT(*) FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = 'users'
     `);
+    const hasUsersTable = parseInt(usersTableExists[0].count, 10) > 0;
+
+    if (!hasAdminUsers && hasUsersTable) {
+      await queryRunner.query(`
+        INSERT INTO admin_users (id, username, password, email, phone, role, status, avatar, nickname, last_login_at, created_at, updated_at)
+        SELECT id, username, password, email, phone,
+          CASE WHEN role = 'admin' OR is_admin = true THEN 'super_admin' ELSE 'admin' END,
+          CASE
+            WHEN status = 'active' THEN 'active'
+            WHEN status = 'inactive' THEN 'inactive'
+            WHEN status = 'suspended' THEN 'suspended'
+            ELSE 'active'
+          END,
+          avatar, nickname, last_login_at, created_at, updated_at
+        FROM users
+        ON CONFLICT (id) DO NOTHING
+      `);
+    }
 
     // 4. 删除 user_roles 的旧外键约束（如果存在）
     try {

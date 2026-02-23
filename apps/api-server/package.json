@@ -36,6 +36,8 @@
   "dependencies": {
     "@ai-platform/constants": "workspace:*",
     "@ai-platform/shared": "workspace:*",
+    "@aws-sdk/client-s3": "^3.995.0",
+    "@aws-sdk/s3-request-presigner": "^3.995.0",
     "@langchain/community": "^1.0.4",
     "@langchain/core": "^1.0.6",
     "@langchain/openai": "^1.1.2",

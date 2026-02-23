@@ -8,10 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   AppVersion,
-  AppPlatform,
   UpdateType,
   AppVersionStatus,
 } from '../../entities/app-version.entity';
+import { AppVersionPackage } from '../../entities/app-version-package.entity';
 import {
   CreateAppVersionDto,
   UpdateAppVersionDto,
@@ -25,6 +25,8 @@ export class AppVersionService {
   constructor(
     @InjectRepository(AppVersion)
     private readonly appVersionRepository: Repository<AppVersion>,
+    @InjectRepository(AppVersionPackage)
+    private readonly packageRepository: Repository<AppVersionPackage>,
   ) {}
 
   /**
@@ -47,11 +49,11 @@ export class AppVersionService {
       platform,
       status,
       updateType,
-      channel,
     } = query;
 
-    const queryBuilder =
-      this.appVersionRepository.createQueryBuilder('version');
+    const queryBuilder = this.appVersionRepository
+      .createQueryBuilder('version')
+      .leftJoinAndSelect('version.packages', 'packages');
 
     if (keyword) {
       queryBuilder.andWhere(
@@ -72,10 +74,6 @@ export class AppVersionService {
       queryBuilder.andWhere('version.updateType = :updateType', { updateType });
     }
 
-    if (channel) {
-      queryBuilder.andWhere('version.channel = :channel', { channel });
-    }
-
     queryBuilder.orderBy('version.versionCode', 'DESC');
 
     const skip = (page - 1) * pageSize;
@@ -83,20 +81,16 @@ export class AppVersionService {
 
     const [list, total] = await queryBuilder.getManyAndCount();
 
-    return {
-      list,
-      total,
-      page,
-      pageSize,
-    };
+    return { list, total, page, pageSize };
   }
 
   /**
-   * 获取版本详情
+   * 获取版本详情（含渠道包）
    */
   async findOne(id: string) {
     const version = await this.appVersionRepository.findOne({
       where: { id },
+      relations: ['packages'],
     });
 
     if (!version) {
@@ -133,7 +127,6 @@ export class AppVersionService {
       ...createDto,
       versionCode,
       minSupportVersionCode,
-      channel: createDto.channel || 'official',
       status: createDto.status || AppVersionStatus.DRAFT,
       grayRelease: createDto.grayRelease || false,
       grayPercent: createDto.grayPercent || 0,
@@ -162,9 +155,6 @@ export class AppVersionService {
       const allowedFields = [
         'updateType',
         'description',
-        'downloadUrl',
-        'fileSize',
-        'checksum',
         'grayRelease',
         'grayPercent',
         'i18nDescription',
@@ -281,38 +271,48 @@ export class AppVersionService {
 
     const currentVersionCode = this.parseVersionCode(current_version);
 
-    // 查找该平台/渠道下最新的已发布版本
+    // 查找该平台下最新的已发布版本，且该版本包含对应渠道的启用包
     const latestVersion = await this.appVersionRepository
       .createQueryBuilder('version')
+      .innerJoinAndSelect(
+        'version.packages',
+        'pkg',
+        'pkg.channel = :channel AND pkg.enabled = true',
+        { channel },
+      )
       .where('version.platform = :platform', { platform })
       .andWhere('version.status = :status', {
         status: AppVersionStatus.PUBLISHED,
       })
-      .andWhere('version.channel = :channel', { channel })
       .orderBy('version.versionCode', 'DESC')
       .getOne();
 
     // 无最新版本或当前已是最新
     if (!latestVersion || latestVersion.versionCode <= currentVersionCode) {
-      return {
-        need_update: false,
-      };
+      return { need_update: false };
     }
+
+    // 取匹配的渠道包
+    const pkg = latestVersion.packages?.[0];
 
     // 灰度发布检查
     if (latestVersion.grayRelease && latestVersion.grayPercent < 100) {
       if (device_id) {
-        // 基于 device_id 的哈希确定是否在灰度范围
         const hash = this.hashDeviceId(device_id);
         if (hash > latestVersion.grayPercent) {
           // 不在灰度范围，查找上一个全量发布版本
           const fallbackVersion = await this.appVersionRepository
             .createQueryBuilder('version')
+            .innerJoinAndSelect(
+              'version.packages',
+              'pkg',
+              'pkg.channel = :channel AND pkg.enabled = true',
+              { channel },
+            )
             .where('version.platform = :platform', { platform })
             .andWhere('version.status = :status', {
               status: AppVersionStatus.PUBLISHED,
             })
-            .andWhere('version.channel = :channel', { channel })
             .andWhere('version.versionCode > :currentCode', {
               currentCode: currentVersionCode,
             })
@@ -328,6 +328,7 @@ export class AppVersionService {
 
           return this.buildUpdateResponse(
             fallbackVersion,
+            fallbackVersion.packages?.[0],
             currentVersionCode,
             language,
           );
@@ -337,6 +338,7 @@ export class AppVersionService {
 
     return this.buildUpdateResponse(
       latestVersion,
+      pkg,
       currentVersionCode,
       language,
     );
@@ -347,10 +349,10 @@ export class AppVersionService {
    */
   private buildUpdateResponse(
     version: AppVersion,
+    pkg: AppVersionPackage | undefined,
     currentVersionCode: number,
     language?: string,
   ) {
-    // 判断更新类型：如果设置了最低支持版本且当前版本低于最低版本，则强制更新
     let updateType = version.updateType;
     if (
       version.minSupportVersionCode &&
@@ -359,13 +361,8 @@ export class AppVersionService {
       updateType = UpdateType.FORCE;
     }
 
-    // 多语言描述
     let description = version.description;
-    if (
-      language &&
-      version.i18nDescription &&
-      version.i18nDescription[language]
-    ) {
+    if (language && version.i18nDescription?.[language]) {
       description = version.i18nDescription[language];
     }
 
@@ -374,9 +371,9 @@ export class AppVersionService {
       latest_version: version.version,
       update_type: updateType,
       description,
-      download_url: version.downloadUrl,
-      file_size: Number(version.fileSize),
-      checksum: version.checksum || undefined,
+      download_url: pkg?.downloadUrl || '',
+      file_size: pkg ? Number(pkg.fileSize) : 0,
+      checksum: pkg?.checksum || undefined,
     };
   }
 

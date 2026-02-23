@@ -12,6 +12,10 @@ import { PATH } from './path';
 export type AppPlatform = 'android' | 'ios';
 export type UpdateType = 'optional' | 'force';
 export type AppVersionStatus = 'draft' | 'published' | 'archived';
+export type AppChannel = 'official' | 'beta' | 'app_store' | 'google_play';
+
+/** 商店渠道（不需要上传安装包） */
+export const STORE_CHANNELS: AppChannel[] = ['app_store', 'google_play'];
 
 export interface GetAppVersionsQueryDto {
   page?: number;
@@ -20,7 +24,6 @@ export interface GetAppVersionsQueryDto {
   platform?: AppPlatform;
   status?: AppVersionStatus;
   updateType?: UpdateType;
-  channel?: string;
 }
 
 export interface CreateAppVersionDto {
@@ -29,10 +32,6 @@ export interface CreateAppVersionDto {
   updateType: UpdateType;
   title: string;
   description: string;
-  downloadUrl: string;
-  fileSize?: number;
-  checksum?: string;
-  channel?: string;
   minSupportVersion?: string;
   status?: AppVersionStatus;
   grayRelease?: boolean;
@@ -46,10 +45,6 @@ export interface UpdateAppVersionDto {
   updateType?: UpdateType;
   title?: string;
   description?: string;
-  downloadUrl?: string;
-  fileSize?: number;
-  checksum?: string;
-  channel?: string;
   minSupportVersion?: string;
   status?: AppVersionStatus;
   grayRelease?: boolean;
@@ -57,6 +52,33 @@ export interface UpdateAppVersionDto {
   releaseDate?: string;
   i18nDescription?: Record<string, string>;
   metadata?: Record<string, any>;
+}
+
+export interface AppVersionPackageDto {
+  id: string;
+  versionId: string;
+  channel: AppChannel;
+  downloadUrl: string;
+  fileSize: number;
+  checksum?: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePackageDto {
+  channel: AppChannel;
+  downloadUrl: string;
+  fileSize?: number;
+  checksum?: string;
+  enabled?: boolean;
+}
+
+export interface UpdatePackageDto {
+  downloadUrl?: string;
+  fileSize?: number;
+  checksum?: string;
+  enabled?: boolean;
 }
 
 export interface AppVersionInfoDto {
@@ -67,10 +89,6 @@ export interface AppVersionInfoDto {
   updateType: UpdateType;
   title: string;
   description: string;
-  downloadUrl: string;
-  fileSize: number;
-  checksum?: string;
-  channel: string;
   minSupportVersion?: string;
   status: AppVersionStatus;
   grayRelease: boolean;
@@ -78,6 +96,7 @@ export interface AppVersionInfoDto {
   releaseDate?: string;
   i18nDescription?: Record<string, string>;
   metadata?: Record<string, any>;
+  packages?: AppVersionPackageDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -94,10 +113,12 @@ export interface AppVersionStatsDto {
   published: number;
   draft: number;
   archived: number;
-  platforms: {
-    android: number;
-    ios: number;
-  };
+  platformStats: Array<{ platform: string; count: string }>;
+}
+
+export interface StoreDefaultsDto {
+  appStoreUrl: string;
+  googlePlayUrl: string;
 }
 
 // ==================== Query Keys ====================
@@ -171,6 +192,55 @@ export const appVersionApi = {
   getStats: async (): Promise<AppVersionStatsDto> => {
     return await request.get<AppVersionStatsDto>(
       `${PATH.ADMIN.APP_VERSIONS}/stats`,
+    );
+  },
+
+  // ---- 渠道包 API ----
+  getPackages: async (versionId: string): Promise<AppVersionPackageDto[]> => {
+    return await request.get<AppVersionPackageDto[]>(
+      PATH.ADMIN.APP_VERSION_PACKAGES(versionId),
+    );
+  },
+
+  createPackage: async (
+    versionId: string,
+    data: CreatePackageDto,
+  ): Promise<AppVersionPackageDto> => {
+    return await request.post<AppVersionPackageDto>(
+      PATH.ADMIN.APP_VERSION_PACKAGES(versionId),
+      data,
+    );
+  },
+
+  updatePackage: async (
+    versionId: string,
+    packageId: string,
+    data: UpdatePackageDto,
+  ): Promise<AppVersionPackageDto> => {
+    return await request.put<AppVersionPackageDto>(
+      `${PATH.ADMIN.APP_VERSION_PACKAGES(versionId)}/${packageId}`,
+      data,
+    );
+  },
+
+  deletePackage: async (versionId: string, packageId: string): Promise<void> => {
+    await request.delete(
+      `${PATH.ADMIN.APP_VERSION_PACKAGES(versionId)}/${packageId}`,
+    );
+  },
+
+  togglePackageEnabled: async (
+    versionId: string,
+    packageId: string,
+  ): Promise<AppVersionPackageDto> => {
+    return await request.patch<AppVersionPackageDto>(
+      `${PATH.ADMIN.APP_VERSION_PACKAGES(versionId)}/${packageId}/toggle`,
+    );
+  },
+
+  getStoreDefaults: async (): Promise<StoreDefaultsDto> => {
+    return await request.get<StoreDefaultsDto>(
+      PATH.ADMIN.APP_VERSION_STORE_DEFAULTS,
     );
   },
 };
@@ -278,6 +348,72 @@ export const useArchiveAppVersion = (options?: any) => {
       queryClient.invalidateQueries({
         queryKey: appVersionQueryKeys.appVersions,
       });
+    },
+    ...options,
+  });
+};
+
+// ==================== 渠道包 Hooks ====================
+
+const packageQueryKeys = {
+  packages: (versionId: string) => ['appVersionPackages', versionId] as const,
+};
+
+export const useAppVersionPackages = (versionId: string, options?: any) => {
+  return useQuery<AppVersionPackageDto[]>({
+    queryKey: packageQueryKeys.packages(versionId),
+    queryFn: () => appVersionApi.getPackages(versionId),
+    enabled: !!versionId,
+    staleTime: 2 * 60 * 1000,
+    ...options,
+  });
+};
+
+export const useCreatePackage = (versionId: string, options?: any) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreatePackageDto) =>
+      appVersionApi.createPackage(versionId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: packageQueryKeys.packages(versionId) });
+      queryClient.invalidateQueries({ queryKey: appVersionQueryKeys.appVersions });
+    },
+    ...options,
+  });
+};
+
+export const useUpdatePackage = (versionId: string, options?: any) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdatePackageDto }) =>
+      appVersionApi.updatePackage(versionId, id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: packageQueryKeys.packages(versionId) });
+    },
+    ...options,
+  });
+};
+
+export const useDeletePackage = (versionId: string, options?: any) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (packageId: string) =>
+      appVersionApi.deletePackage(versionId, packageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: packageQueryKeys.packages(versionId) });
+      queryClient.invalidateQueries({ queryKey: appVersionQueryKeys.appVersions });
+    },
+    ...options,
+  });
+};
+
+export const useTogglePackageEnabled = (versionId: string, options?: any) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (packageId: string) =>
+      appVersionApi.togglePackageEnabled(versionId, packageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: packageQueryKeys.packages(versionId) });
     },
     ...options,
   });

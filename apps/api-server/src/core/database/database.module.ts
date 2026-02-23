@@ -17,6 +17,7 @@ import { PermissionTemplate } from '../../entities/permission-template.entity';
 import { UserRole } from '../../entities/user-role.entity';
 import { RolePermission } from '../../entities/role-permission.entity';
 import { AppVersion } from '../../entities/app-version.entity';
+import { AppVersionPackage } from '../../entities/app-version-package.entity';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { AppVersion } from '../../entities/app-version.entity';
             RolePermission,
             // App 版本管理
             AppVersion,
+            AppVersionPackage,
           ],
           synchronize: dbConfig.synchronize,
           logging: process.env.NODE_ENV === 'development',

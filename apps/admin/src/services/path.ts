@@ -1,5 +1,6 @@
 const PATH = {
-  FILE_S3: '/file/image/create',
+  FILE_S3: '/admin/files/upload',
+  FILE_PRESIGNED: '/admin/files/presigned-url',
   USER_ADMIN: {
     LOGIN_BY_TOKEN: '/auth/login_by_token',
     AUTHEN_SEND_CODE: '/auth/send_code',
@@ -20,6 +21,9 @@ const PATH = {
     PERMISSION_TEMPLATES: '/admin/permission-templates',
     // 应用版本管理
     APP_VERSIONS: '/admin/app-versions',
+    APP_VERSION_PACKAGES: (versionId: string) =>
+      `/admin/app-versions/${versionId}/packages`,
+    APP_VERSION_STORE_DEFAULTS: '/admin/app-versions/store-defaults/packages',
     // App 用户管理
     APP_USERS: '/admin/app-users',
   },

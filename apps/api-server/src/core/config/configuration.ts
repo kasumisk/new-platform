@@ -35,12 +35,22 @@ export interface ProxyConfig {
   password?: string;
 }
 
+export interface StorageConfig {
+  endpoint?: string;
+  region: string;
+  accessKey?: string;
+  secretKey?: string;
+  bucket: string;
+  publicUrl?: string;
+}
+
 export interface Config {
   readonly app: AppConfig;
   readonly database: DatabaseConfig;
   readonly logger: LoggerConfig;
   readonly okx: OkxConfig;
   readonly proxy: ProxyConfig;
+  readonly storage: StorageConfig;
 }
 
 export default (): Config => ({
@@ -77,5 +87,13 @@ export default (): Config => ({
       : undefined,
     username: process.env.PROXY_USERNAME,
     password: process.env.PROXY_PASSWORD,
+  },
+  storage: {
+    endpoint: process.env.STORAGE_ENDPOINT,
+    region: process.env.STORAGE_REGION || 'auto',
+    accessKey: process.env.STORAGE_ACCESS_KEY,
+    secretKey: process.env.STORAGE_SECRET_KEY,
+    bucket: process.env.STORAGE_BUCKET || 'uploads',
+    publicUrl: process.env.STORAGE_PUBLIC_URL,
   },
 });
