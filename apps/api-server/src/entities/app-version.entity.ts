@@ -35,17 +35,21 @@ export enum AppVersionStatus {
 }
 
 @Entity('app_versions')
-@Index(['platform', 'version'], { unique: true })
-@Index(['platform', 'status'])
+@Index(['version'], { unique: true })
 export class AppVersion {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /**
-   * 平台类型: android / ios
+   * 平台类型: android / ios（可选，为空表示全平台通用）
    */
-  @Column({ type: 'enum', enum: AppPlatform })
-  platform: AppPlatform;
+  @Column({
+    type: 'enum',
+    enum: AppPlatform,
+    nullable: true,
+    enumName: 'app_versions_platform_enum',
+  })
+  platform?: AppPlatform;
 
   /**
    * 版本号 (Semantic Versioning, e.g. "1.3.0")
@@ -62,7 +66,12 @@ export class AppVersion {
   /**
    * 更新类型: optional / force
    */
-  @Column({ type: 'enum', enum: UpdateType, default: UpdateType.OPTIONAL })
+  @Column({
+    type: 'enum',
+    enum: UpdateType,
+    default: UpdateType.OPTIONAL,
+    enumName: 'app_versions_updateType_enum',
+  })
   updateType: UpdateType;
 
   /**
@@ -96,6 +105,7 @@ export class AppVersion {
     type: 'enum',
     enum: AppVersionStatus,
     default: AppVersionStatus.DRAFT,
+    enumName: 'app_versions_status_enum',
   })
   status: AppVersionStatus;
 

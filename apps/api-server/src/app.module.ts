@@ -9,9 +9,7 @@ import { AdminModule } from './admin/admin.module';
 import { HealthModule } from './health/health.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { LangChainModule } from './langchain/langchain.module';
-import { AppUpdateModule } from './app/app-update.module';
-import { AppUserModule } from './app/app-user/app-user.module';
-import { AppFileModule } from './app/app-file.module';
+import { AppClientModule } from './app/app-client.module';
 import { StorageModule } from './storage/storage.module';
 import { AllExceptionsFilter } from './core/filters/all-exceptions.filter';
 import { LoggerMiddleware } from './core/middlewares/logger.middleware';
@@ -27,9 +25,7 @@ import { Reflector } from '@nestjs/core';
     HealthModule,
     GatewayModule,
     LangChainModule,
-    AppUpdateModule,
-    AppUserModule,
-    AppFileModule,
+    AppClientModule,
     StorageModule,
   ],
   controllers: [AppController],

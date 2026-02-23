@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -42,7 +42,7 @@ export class EmailRegisterDto {
   @MinLength(6, { message: '密码至少6个字符' })
   password: string;
 
-  @ApiProperty({ description: '昵称', required: false })
+  @ApiPropertyOptional({ description: '昵称' })
   @IsOptional()
   @IsString()
   nickname?: string;
@@ -118,12 +118,12 @@ export class ResetPasswordDto {
  * 更新 App 用户资料 DTO
  */
 export class UpdateAppUserProfileDto {
-  @ApiProperty({ description: '昵称', required: false })
+  @ApiPropertyOptional({ description: '昵称' })
   @IsOptional()
   @IsString()
   nickname?: string;
 
-  @ApiProperty({ description: '头像URL', required: false })
+  @ApiPropertyOptional({ description: '头像URL' })
   @IsOptional()
   @IsString()
   avatar?: string;

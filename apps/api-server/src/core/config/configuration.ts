@@ -66,7 +66,10 @@ export default (): Config => ({
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_DATABASE || 'card3_provider',
-    synchronize: process.env.DB_SYNCHRONIZE === 'true',
+    // 生产环境（NODE_ENV=production）永远禁用 synchronize，防止 TypeORM schema-sync 报错
+    synchronize:
+      process.env.NODE_ENV !== 'production' &&
+      process.env.DB_SYNCHRONIZE === 'true',
   },
   logger: {
     level: process.env.LOG_LEVEL || 'info',

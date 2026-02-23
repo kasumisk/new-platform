@@ -45,10 +45,10 @@ export class AppVersionPackageService {
     await this.assertVersionExists(versionId);
 
     const existing = await this.packageRepository.findOne({
-      where: { versionId, channel: dto.channel },
+      where: { versionId, channel: dto.channel, platform: dto.platform },
     });
     if (existing) {
-      throw new ConflictException(`渠道包已存在: ${dto.channel}，请直接编辑`);
+      throw new ConflictException(`渠道包已存在: ${dto.platform} ${dto.channel}，请直接编辑`);
     }
 
     // 商店渠道不需要文件大小和 checksum，自动补全默认商店 URL
@@ -63,6 +63,7 @@ export class AppVersionPackageService {
 
     const pkg = this.packageRepository.create({
       versionId,
+      platform: dto.platform,
       channel: dto.channel,
       downloadUrl,
       fileSize: dto.fileSize ?? 0,

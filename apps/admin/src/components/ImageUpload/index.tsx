@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Upload, message } from 'antd';
 import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import type { UploadProps, UploadFile } from 'antd';
-import { useUploadImage } from '@/services/admin';
+import { useUploadImage, type UploadParams } from '@/services/admin';
 
 interface ImageUploadProps {
   value?: string;
@@ -11,7 +11,7 @@ interface ImageUploadProps {
   maxCount?: number;
   accept?: string;
   listType?: 'text' | 'picture' | 'picture-card' | 'picture-circle';
-  fileType?: string;
+  category?: UploadParams['category'];
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -21,14 +21,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   maxCount = 1,
   accept = 'image/*',
   listType = 'picture-card',
-  fileType,
+  category = 'image' as UploadParams['category'],
 }) => {
   const [loading, setLoading] = useState(false);
   
   const uploadMutation = useUploadImage({
     onSuccess: (response) => {
       setLoading(false);
-      onChange?.(response);
+      onChange?.(response.url);
       message.success('上传成功');
     },
     onError: (error) => {
@@ -53,7 +53,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     }
 
     setLoading(true);
-    uploadMutation.mutate({ file, fileType });
+    uploadMutation.mutate({ file, category });
     return false; // 阻止默认上传
   };
 

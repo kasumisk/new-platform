@@ -104,17 +104,19 @@ export class AppVersionService {
    * 创建版本
    */
   async create(createDto: CreateAppVersionDto) {
-    // 检查是否已存在相同平台和版本号
-    const existing = await this.appVersionRepository.findOne({
-      where: {
-        platform: createDto.platform,
-        version: createDto.version,
-      },
-    });
+    // 检查版本号是否已存在（同平台+版本号不能重复）
+    const where: any = { version: createDto.version };
+    if (createDto.platform) {
+      where.platform = createDto.platform;
+    } else {
+      where.platform = null as any;
+    }
+    const existing = await this.appVersionRepository.findOne({ where });
 
     if (existing) {
+      const platLabel = createDto.platform || '全平台';
       throw new ConflictException(
-        `版本已存在: ${createDto.platform} v${createDto.version}`,
+        `版本已存在: ${platLabel} v${createDto.version}`,
       );
     }
 
@@ -271,29 +273,33 @@ export class AppVersionService {
 
     const currentVersionCode = this.parseVersionCode(current_version);
 
-    // 查找该平台下最新的已发布版本，且该版本包含对应渠道的启用包
-    const latestVersion = await this.appVersionRepository
+    // 查找最新的已发布版本（匹配平台或全平台通用），同时加载渠道包
+    const queryBuilder = this.appVersionRepository
       .createQueryBuilder('version')
-      .innerJoinAndSelect(
+      .leftJoinAndSelect(
         'version.packages',
         'pkg',
-        'pkg.channel = :channel AND pkg.enabled = true',
-        { channel },
+        'pkg.enabled = true',
       )
-      .where('version.platform = :platform', { platform })
-      .andWhere('version.status = :status', {
+      .where('version.status = :status', {
         status: AppVersionStatus.PUBLISHED,
       })
-      .orderBy('version.versionCode', 'DESC')
-      .getOne();
+      .orderBy('version.versionCode', 'DESC');
+
+    if (platform) {
+      queryBuilder.andWhere('(version.platform = :platform OR version.platform IS NULL)', { platform });
+    }
+
+    const latestVersion = await queryBuilder.getOne();
 
     // 无最新版本或当前已是最新
     if (!latestVersion || latestVersion.versionCode <= currentVersionCode) {
       return { need_update: false };
     }
 
-    // 取匹配的渠道包
-    const pkg = latestVersion.packages?.[0];
+    // 取匹配渠道的包，优先匹配指定渠道，否则取第一个可用包
+    const pkg = latestVersion.packages?.find(p => p.channel === channel)
+      || latestVersion.packages?.[0];
 
     // 灰度发布检查
     if (latestVersion.grayRelease && latestVersion.grayPercent < 100) {
@@ -301,16 +307,14 @@ export class AppVersionService {
         const hash = this.hashDeviceId(device_id);
         if (hash > latestVersion.grayPercent) {
           // 不在灰度范围，查找上一个全量发布版本
-          const fallbackVersion = await this.appVersionRepository
+          const fallbackBuilder = this.appVersionRepository
             .createQueryBuilder('version')
-            .innerJoinAndSelect(
+            .leftJoinAndSelect(
               'version.packages',
               'pkg',
-              'pkg.channel = :channel AND pkg.enabled = true',
-              { channel },
+              'pkg.enabled = true',
             )
-            .where('version.platform = :platform', { platform })
-            .andWhere('version.status = :status', {
+            .where('version.status = :status', {
               status: AppVersionStatus.PUBLISHED,
             })
             .andWhere('version.versionCode > :currentCode', {
@@ -319,16 +323,23 @@ export class AppVersionService {
             .andWhere(
               '(version.grayRelease = false OR version.grayPercent = 100)',
             )
-            .orderBy('version.versionCode', 'DESC')
-            .getOne();
+            .orderBy('version.versionCode', 'DESC');
+
+          if (platform) {
+            fallbackBuilder.andWhere('(version.platform = :platform OR version.platform IS NULL)', { platform });
+          }
+
+          const fallbackVersion = await fallbackBuilder.getOne();
 
           if (!fallbackVersion) {
             return { need_update: false };
           }
 
+          const fallbackPkg = fallbackVersion.packages?.find(p => p.channel === channel)
+            || fallbackVersion.packages?.[0];
           return this.buildUpdateResponse(
             fallbackVersion,
-            fallbackVersion.packages?.[0],
+            fallbackPkg,
             currentVersionCode,
             language,
           );

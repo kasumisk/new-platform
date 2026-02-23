@@ -81,13 +81,14 @@ export class GetAppVersionsQueryDto {
  * 创建版本 DTO
  */
 export class CreateAppVersionDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     enum: AppPlatform,
-    description: '平台类型',
+    description: '平台类型（可选，为空表示全平台通用）',
     example: AppPlatform.ANDROID,
   })
+  @IsOptional()
   @IsEnum(AppPlatform)
-  platform: AppPlatform;
+  platform?: AppPlatform;
 
   @ApiProperty({
     description: '版本号 (Semantic Versioning)',
@@ -258,13 +259,14 @@ export class PublishAppVersionDto {
  * 客户端检查更新请求 DTO
  */
 export class CheckUpdateDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     enum: AppPlatform,
-    description: '平台类型',
+    description: '平台类型（可选）',
     example: 'android',
   })
+  @IsOptional()
   @IsEnum(AppPlatform)
-  platform: AppPlatform;
+  platform?: AppPlatform;
 
   @ApiProperty({
     description: '当前 App 版本号',
@@ -412,6 +414,14 @@ export class CheckUpdateResponseDto {
  * 创建渠道包 DTO
  */
 export class CreateAppVersionPackageDto {
+  @ApiProperty({
+    enum: AppPlatform,
+    description: '平台类型',
+    example: AppPlatform.ANDROID,
+  })
+  @IsEnum(AppPlatform)
+  platform: AppPlatform;
+
   @ApiProperty({
     enum: AppChannel,
     description: '分发渠道',

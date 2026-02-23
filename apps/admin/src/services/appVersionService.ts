@@ -57,6 +57,7 @@ export interface UpdateAppVersionDto {
 export interface AppVersionPackageDto {
   id: string;
   versionId: string;
+  platform: AppPlatform;
   channel: AppChannel;
   downloadUrl: string;
   fileSize: number;
@@ -67,6 +68,7 @@ export interface AppVersionPackageDto {
 }
 
 export interface CreatePackageDto {
+  platform: AppPlatform;
   channel: AppChannel;
   downloadUrl: string;
   fileSize?: number;
@@ -83,7 +85,7 @@ export interface UpdatePackageDto {
 
 export interface AppVersionInfoDto {
   id: string;
-  platform: AppPlatform;
+  platform?: AppPlatform;
   version: string;
   versionCode: number;
   updateType: UpdateType;

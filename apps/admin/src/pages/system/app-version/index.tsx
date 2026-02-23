@@ -6,7 +6,6 @@ import {
   Tag,
   Popconfirm,
   message,
-  Modal,
   Statistic,
   Row,
   Col,
@@ -18,6 +17,7 @@ import {
   Select,
   InputNumber,
   Tooltip,
+  Modal,
 } from 'antd';
 import {
   PlusOutlined,
@@ -61,6 +61,7 @@ import {
   STORE_CHANNELS,
 } from '@/services/appVersionService';
 import { useUploadFile, type UploadResult } from '@/services/admin';
+import globalModal from '@/utils/modal';
 
 // ==================== 常量配置 ====================
 
@@ -111,6 +112,7 @@ const PackageManager: React.FC<PackageManagerProps> = ({ version, onClose }) => 
   const [uploadedFileInfo, setUploadedFileInfo] = useState<UploadResult | null>(null);
   const [uploading, setUploading] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<AppChannel>('official');
+  const [selectedPlatform, setSelectedPlatform] = useState<AppPlatform>('android');
   const [form] = Form.useForm();
 
   const uploadMutation = useUploadFile();
@@ -137,6 +139,7 @@ const PackageManager: React.FC<PackageManagerProps> = ({ version, onClose }) => 
     setEditingPackage(null);
     setUploadedFileInfo(null);
     setSelectedChannel('official');
+    setSelectedPlatform('android');
   };
 
   const openCreate = () => { resetForm(); setPackageFormVisible(true); };
@@ -144,7 +147,9 @@ const PackageManager: React.FC<PackageManagerProps> = ({ version, onClose }) => 
   const openEdit = (pkg: AppVersionPackageDto) => {
     setEditingPackage(pkg);
     setSelectedChannel(pkg.channel as AppChannel);
+    setSelectedPlatform(pkg.platform);
     form.setFieldsValue({
+      platform: pkg.platform,
       channel: pkg.channel,
       downloadUrl: pkg.downloadUrl,
       fileSize: pkg.fileSize,
@@ -169,6 +174,7 @@ const PackageManager: React.FC<PackageManagerProps> = ({ version, onClose }) => 
     const values = await form.validateFields();
     const isStore = STORE_CHANNELS.includes(selectedChannel);
     const data: CreatePackageDto = {
+      platform: values.platform,
       channel: values.channel,
       downloadUrl: uploadedFileInfo?.url || values.downloadUrl,
       fileSize: isStore ? 0 : (uploadedFileInfo?.size ?? values.fileSize ?? 0),
@@ -183,12 +189,19 @@ const PackageManager: React.FC<PackageManagerProps> = ({ version, onClose }) => 
   };
 
   const isStore = STORE_CHANNELS.includes(selectedChannel);
-  const usedChannels = packages.map((p) => p.channel);
-  const availableChannels = (Object.keys(channelConfig) as AppChannel[]).filter(
-    (ch) => editingPackage ? true : !usedChannels.includes(ch),
-  );
+  const usedChannels = packages.map((p) => `${p.platform}-${p.channel}`);
+  const availableChannels = (Object.keys(channelConfig) as AppChannel[]);
 
   const pkgColumns = [
+    {
+      title: '平台',
+      dataIndex: 'platform',
+      width: 100,
+      render: (platform: AppPlatform) => {
+        const cfg = platformConfig[platform];
+        return cfg ? <Tag color={cfg.color} icon={cfg.icon}>{cfg.text}</Tag> : '-';
+      },
+    },
     {
       title: '渠道',
       dataIndex: 'channel',
@@ -251,9 +264,13 @@ const PackageManager: React.FC<PackageManagerProps> = ({ version, onClose }) => 
       <Modal
         title={
           <Space>
-            <Tag color={platformConfig[version.platform].color} icon={platformConfig[version.platform].icon}>
-              {platformConfig[version.platform].text}
-            </Tag>
+            {version.platform ? (
+              <Tag color={platformConfig[version.platform].color} icon={platformConfig[version.platform].icon}>
+                {platformConfig[version.platform].text}
+              </Tag>
+            ) : (
+              <Tag color="cyan">全平台</Tag>
+            )}
             <span>v{version.version} — 渠道包管理</span>
             <Tag color={statusConfig[version.status].color}>{statusConfig[version.status].text}</Tag>
           </Space>
@@ -265,7 +282,7 @@ const PackageManager: React.FC<PackageManagerProps> = ({ version, onClose }) => 
         destroyOnClose
       >
         <div style={{ marginBottom: 12, textAlign: 'right' }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate} disabled={availableChannels.length === 0}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
             添加渠道包
           </Button>
         </div>
@@ -290,6 +307,17 @@ const PackageManager: React.FC<PackageManagerProps> = ({ version, onClose }) => 
         width={520}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="platform" label="平台" rules={[{ required: true, message: '请选择平台' }]}>
+            <Select
+              placeholder="选择平台"
+              disabled={!!editingPackage}
+              onChange={(v: AppPlatform) => setSelectedPlatform(v)}
+              options={[
+                { label: <Space><AndroidOutlined /> Android</Space>, value: 'android' },
+                { label: <Space><AppleOutlined /> iOS</Space>, value: 'ios' },
+              ]}
+            />
+          </Form.Item>
           <Form.Item name="channel" label="分发渠道" rules={[{ required: true, message: '请选择渠道' }]}>
             <Select
               placeholder="选择渠道"
@@ -426,9 +454,10 @@ const AppVersionManagement: React.FC = () => {
   const handleDelete = (id: string) => (deleteMutation.mutate as any)(id);
 
   const handlePublish = (record: AppVersionInfoDto) => {
-    Modal.confirm({
+    const platText = record.platform ? platformConfig[record.platform].text : '全平台';
+    globalModal.confirm({
       title: '确认发布',
-      content: `确定要发布 ${platformConfig[record.platform].text} v${record.version} 吗？${record.grayRelease ? `（灰度：${record.grayPercent}%）` : ''}`,
+      content: `确定要发布 ${platText} v${record.version} 吗？${record.grayRelease ? `（灰度：${record.grayPercent}%）` : ''}`,
       okText: '确认发布',
       cancelText: '取消',
       onOk: () => publishMutation.mutate({ id: record.id }),
@@ -436,9 +465,10 @@ const AppVersionManagement: React.FC = () => {
   };
 
   const handleArchive = (record: AppVersionInfoDto) => {
-    Modal.confirm({
+    const platText = record.platform ? platformConfig[record.platform].text : '全平台';
+    globalModal.confirm({
       title: '确认归档',
-      content: `确定要归档 ${platformConfig[record.platform].text} v${record.version} 吗？`,
+      content: `确定要归档 ${platText} v${record.version} 吗？`,
       okText: '确认归档',
       cancelText: '取消',
       onOk: () => (archiveMutation.mutate as any)(record.id),
@@ -467,17 +497,17 @@ const AppVersionManagement: React.FC = () => {
   // ==================== 表格列 ====================
 
   const columns: ProColumns<AppVersionInfoDto>[] = [
-    {
-      title: '平台',
-      dataIndex: 'platform',
-      width: 110,
-      valueType: 'select',
-      valueEnum: { android: { text: 'Android' }, ios: { text: 'iOS' } },
-      render: (_: any, record: AppVersionInfoDto) => {
-        const cfg = platformConfig[record.platform];
-        return <Tag color={cfg.color} icon={cfg.icon}>{cfg.text}</Tag>;
-      },
-    },
+    // {
+    //   title: '平台',
+    //   dataIndex: 'platform',
+    //   width: 110,
+    //   valueType: 'select',
+    //   valueEnum: { android: { text: 'Android' }, ios: { text: 'iOS' } },
+    //   render: (_: any, record: AppVersionInfoDto) => {
+    //     const cfg = platformConfig[record.platform];
+    //     return <Tag color={cfg.color} icon={cfg.icon}>{cfg.text}</Tag>;
+    //   },
+    // },
     {
       title: '版本号',
       dataIndex: 'version',
@@ -618,14 +648,6 @@ const AppVersionManagement: React.FC = () => {
     layout: 'vertical',
     fields: [
       {
-        name: 'platform',
-        label: '平台',
-        type: 'select',
-        required: true,
-        options: [{ label: 'Android', value: 'android' }, { label: 'iOS', value: 'ios' }],
-        fieldProps: { placeholder: '选择平台', disabled: isEditMode },
-      },
-      {
         name: 'version',
         label: '版本号',
         type: 'text',
@@ -742,7 +764,7 @@ const AppVersionManagement: React.FC = () => {
                 i18nDescription: currentRecord.i18nDescription ? JSON.stringify(currentRecord.i18nDescription, null, 2) : undefined,
                 metadata: currentRecord.metadata ? JSON.stringify(currentRecord.metadata, null, 2) : undefined,
               }
-            : { platform: 'android', updateType: 'optional', grayRelease: false, grayPercent: 0 }
+            : { updateType: 'optional', grayRelease: false, grayPercent: 0 }
         }
         onFinish={handleFormSubmit}
         loading={createMutation.isPending || updateMutation.isPending}

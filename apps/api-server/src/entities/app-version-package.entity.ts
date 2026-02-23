@@ -8,7 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { AppVersion } from './app-version.entity';
+import { AppVersion, AppPlatform } from './app-version.entity';
 
 /**
  * 渠道类型
@@ -28,7 +28,11 @@ export enum AppChannel {
 export const STORE_CHANNELS = [AppChannel.APP_STORE, AppChannel.GOOGLE_PLAY];
 
 @Entity('app_version_packages')
-@Index(['versionId', 'channel'], { unique: true })
+@Index(
+  'IDX_app_version_packages_version_channel_platform',
+  ['versionId', 'channel', 'platform'],
+  { unique: true },
+)
 export class AppVersionPackage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -44,6 +48,16 @@ export class AppVersionPackage {
   })
   @JoinColumn({ name: 'versionId' })
   version: AppVersion;
+
+  /**
+   * 平台类型: android / ios
+   */
+  @Column({
+    type: 'enum',
+    enum: AppPlatform,
+    enumName: 'app_version_packages_platform_enum',
+  })
+  platform: AppPlatform;
 
   /**
    * 渠道：official | beta | app_store | google_play
