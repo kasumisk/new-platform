@@ -46,18 +46,17 @@ export class AppUpdateService {
 
     const queryBuilder = this.appVersionRepository
       .createQueryBuilder('version')
-      .leftJoinAndSelect(
-        'version.packages',
-        'pkg',
-        'pkg.enabled = true',
-      )
+      .leftJoinAndSelect('version.packages', 'pkg', 'pkg.enabled = true')
       .andWhere('version.status = :status', {
         status: AppVersionStatus.PUBLISHED,
       })
       .orderBy('version.versionCode', 'DESC');
 
     if (platform) {
-      queryBuilder.andWhere('(version.platform = :platform OR version.platform IS NULL)', { platform });
+      queryBuilder.andWhere(
+        '(version.platform = :platform OR version.platform IS NULL)',
+        { platform },
+      );
     }
 
     const latestVersion = await queryBuilder.getOne();
@@ -67,8 +66,9 @@ export class AppUpdateService {
     }
 
     // 优先匹配指定渠道的包，否则取第一个可用包
-    const pkg = latestVersion.packages?.find(p => p.channel === channel)
-      || latestVersion.packages?.[0];
+    const pkg =
+      latestVersion.packages?.find((p) => p.channel === channel) ||
+      latestVersion.packages?.[0];
 
     // 灰度发布检查
     if (latestVersion.grayRelease && latestVersion.grayPercent < 100) {
@@ -77,11 +77,7 @@ export class AppUpdateService {
         if (hash > latestVersion.grayPercent) {
           const fallbackBuilder = this.appVersionRepository
             .createQueryBuilder('version')
-            .leftJoinAndSelect(
-              'version.packages',
-              'pkg',
-              'pkg.enabled = true',
-            )
+            .leftJoinAndSelect('version.packages', 'pkg', 'pkg.enabled = true')
             .where('version.status = :status', {
               status: AppVersionStatus.PUBLISHED,
             })
@@ -94,7 +90,10 @@ export class AppUpdateService {
             .orderBy('version.versionCode', 'DESC');
 
           if (platform) {
-            fallbackBuilder.andWhere('(version.platform = :platform OR version.platform IS NULL)', { platform });
+            fallbackBuilder.andWhere(
+              '(version.platform = :platform OR version.platform IS NULL)',
+              { platform },
+            );
           }
 
           const fallbackVersion = await fallbackBuilder.getOne();
@@ -105,8 +104,8 @@ export class AppUpdateService {
 
           return this.buildUpdateResponse(
             fallbackVersion,
-            fallbackVersion.packages?.find(p => p.channel === channel)
-              || fallbackVersion.packages?.[0],
+            fallbackVersion.packages?.find((p) => p.channel === channel) ||
+              fallbackVersion.packages?.[0],
             currentVersionCode,
             language,
           );
@@ -126,22 +125,21 @@ export class AppUpdateService {
    * 获取最新版本信息
    */
   async getLatestVersion(query: GetLatestVersionQueryDto) {
-    const { platform, channel = 'official', language } = query;
+    const { platform, channel: _channel = 'official', language } = query;
 
     const queryBuilder = this.appVersionRepository
       .createQueryBuilder('version')
-      .leftJoinAndSelect(
-        'version.packages',
-        'pkg',
-        'pkg.enabled = true',
-      )
+      .leftJoinAndSelect('version.packages', 'pkg', 'pkg.enabled = true')
       .where('version.status = :status', {
         status: AppVersionStatus.PUBLISHED,
       })
       .orderBy('version.versionCode', 'DESC');
 
     if (platform) {
-      queryBuilder.andWhere('(version.platform = :platform OR version.platform IS NULL)', { platform });
+      queryBuilder.andWhere(
+        '(version.platform = :platform OR version.platform IS NULL)',
+        { platform },
+      );
     }
 
     const latestVersion = await queryBuilder.getOne();
@@ -150,14 +148,19 @@ export class AppUpdateService {
       throw new NotFoundException('暂无可用版本');
     }
 
-    // 优先匹配指定渠道的包，否则取第一个可用包
-    const pkg = latestVersion.packages?.find(p => p.channel === channel)
-      || latestVersion.packages?.[0];
-
     let description = latestVersion.description;
     if (language && latestVersion.i18nDescription?.[language]) {
       description = latestVersion.i18nDescription[language];
     }
+
+    const packages = (latestVersion.packages || []).map((pkg) => ({
+      id: pkg.id,
+      platform: pkg.platform,
+      channel: pkg.channel,
+      downloadUrl: pkg.downloadUrl,
+      fileSize: Number(pkg.fileSize),
+      checksum: pkg.checksum || null,
+    }));
 
     return {
       version: latestVersion.version,
@@ -167,10 +170,10 @@ export class AppUpdateService {
       description,
       updateType: latestVersion.updateType,
       releaseDate: latestVersion.releaseDate,
-      downloadUrl: pkg?.downloadUrl || '',
-      fileSize: pkg ? Number(pkg.fileSize) : 0,
-      checksum: pkg?.checksum || undefined,
-      minSupportVersion: latestVersion.minSupportVersion,
+      minSupportVersion: latestVersion.minSupportVersion || null,
+      packages,
+      i18nDescription: latestVersion.i18nDescription || null,
+      metadata: latestVersion.metadata || null,
     };
   }
 
@@ -188,7 +191,10 @@ export class AppUpdateService {
       .orderBy('version.versionCode', 'DESC');
 
     if (platform) {
-      queryBuilder.andWhere('(version.platform = :platform OR version.platform IS NULL)', { platform });
+      queryBuilder.andWhere(
+        '(version.platform = :platform OR version.platform IS NULL)',
+        { platform },
+      );
     }
 
     const skip = (page - 1) * pageSize;

@@ -17,10 +17,7 @@ import {
   AppUserAuthType,
   AppUserStatus,
 } from '../../entities/app-user.entity';
-import type {
-  AppLoginResponseDto,
-  AppUserResponseDto,
-} from '../dto/auth.dto';
+import type { AppLoginResponseDto, AppUserResponseDto } from '../dto/auth.dto';
 
 @Injectable()
 export class AppAuthService {

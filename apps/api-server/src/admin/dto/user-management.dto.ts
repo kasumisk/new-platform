@@ -136,7 +136,7 @@ export class UpdateUserDto implements IUpdateUserDto {
 /**
  * 重置密码 DTO
  */
-export class ResetPasswordDto implements IResetPasswordDto {
+export class AdminResetPasswordDto implements IResetPasswordDto {
   @ApiProperty({ description: '新密码', example: 'newpassword123' })
   @IsString()
   @IsNotEmpty()

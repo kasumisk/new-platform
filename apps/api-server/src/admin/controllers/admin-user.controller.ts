@@ -18,7 +18,7 @@ import {
   CreateUserDto,
   UpdateUserDto,
   GetUsersQueryDto,
-  ResetPasswordDto,
+  AdminResetPasswordDto,
 } from '../dto/user-management.dto';
 import { ApiResponse } from '../../common/types/response.type';
 
@@ -113,7 +113,7 @@ export class AdminUserController {
   @Post(':id/reset-password')
   async resetPassword(
     @Param('id') id: string,
-    @Body() resetPasswordDto: ResetPasswordDto,
+    @Body() resetPasswordDto: AdminResetPasswordDto,
   ): Promise<ApiResponse> {
     const data = await this.adminUserService.resetPassword(
       id,

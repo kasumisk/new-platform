@@ -18,7 +18,7 @@ import {
   CreateUserDto,
   UpdateUserDto,
   GetUsersQueryDto,
-  ResetPasswordDto,
+  AdminResetPasswordDto,
 } from '../dto/user-management.dto';
 
 @Injectable()
@@ -210,7 +210,7 @@ export class AdminUserService {
   /**
    * 重置密码
    */
-  async resetPassword(id: string, resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(id: string, resetPasswordDto: AdminResetPasswordDto) {
     const user = await this.adminUserRepository
       .createQueryBuilder('user')
       .addSelect('user.password')

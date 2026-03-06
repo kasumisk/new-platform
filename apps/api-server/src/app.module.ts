@@ -47,7 +47,7 @@ import { Reflector } from '@nestjs/core';
           {
             get(target, prop) {
               if (prop === 'canActivate') {
-                return async (context: any) => {
+                return (context: any) => {
                   // 检查是否是公开路由
                   const isPublic = reflector.getAllAndOverride('isPublic', [
                     context.getHandler(),
